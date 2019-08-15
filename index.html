@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  
+  <title>Testing Checklist</title>
+
+  <link rel='icon' href='favicon.ico' type='image/x-icon' />
+  <link rel="stylesheet" type="text/css" href="reset.css" media="screen" />
+  <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
+</head>
+<body>
+  <div class="outer-wrapper">
+    <div class="inner-wrapper">
+      <div class="navigation white">
+        <div id="nav-new-checklist-item">
+          <a href="#" onclick="testing.triggerNewChecklist()" title="Create New Checklist">
+            <img class="new-checklist-item" src="images/plus.svg" />
+          </a>
+        </div>
+        <div id="nav-copy-checklist-item" class="hidden">
+          <a href="#" id="trigger-copy" title="Copy State">
+            <img class="copy-checklist-item" src="images/document.svg" />
+          </a>
+          <a href="#" onclick="testing.closeChecklist()" title="Close Checklist">
+            <img class="close-checklist-item" src="images/error.svg" />
+          </a>
+        </div>
+      </div>
+
+      <div id="new-checklist-wrapper" class="new-checklist hidden">
+        <h2 class="title">New Checklist</h2>
+        <div class="content">
+          <input id="checklist-name" class="input-text" type="text" placeholder="Checklist Name" onkeypress="return testing.handleKeypress('checklist-name', event)" />
+        </div>
+        <div class="navigation">
+          <a class="button save" href="#" onclick="testing.triggerSaveChecklist()">Save</a>
+          <a class="button cancel" href="#" onclick="testing.triggerCancelNewChecklist()">Cancel</a>
+        </div>
+      </div>
+
+      <div id="checklists" class="checklists"></div>
+      <div id="displayed-checklist" class="displayed-checklist hidden"></div>
+      <textarea id="copy-area" class="block-display"></textarea>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+  <script>
+    store.init();
+    state.init(store);
+    html.init();
+    testing.init(state, store, html);
+  </script>
+  <!--
+    <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+    <div>Icons made by <a href="https://www.flaticon.com/authors/maxim-basinski" title="Maxim Basinski">Maxim Basinski</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"             title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+    <div>Icons made by <a href="https://www.flaticon.com/authors/monkik" title="monkik">monkik</a> from <a href="https://www.flaticon.com/"             title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"             title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+    <div>Icons made by <a href="https://www.flaticon.com/authors/smashicons" title="Smashicons">Smashicons</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
+  -->
+</body>
+</html>
