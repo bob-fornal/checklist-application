@@ -11,14 +11,28 @@ body {
     --main-top-pad: 0px;
     --main-width: 100%;  
   }
+
+  .application-title {
+    display: none;
+  }
 }
 @media (min-width: 521px) {
   body {
     --main-top-pad: 25px;
     --main-width: 500px;  
   }
-}
 
+  .application-title {
+    color: maroon;
+    font-size: 4rem;
+    font-weight: bold;
+    left: calc(calc(calc(100% - 500px) / 2) - 11rem);
+    opacity: 0.65;
+    position: fixed;
+    top: calc(calc(274px / 2) + 25px);
+    transform: rotate(-90deg);
+  }
+}
 
 .outer-wrapper {
   background-color: gray;
