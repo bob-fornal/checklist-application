@@ -1,15 +1,21 @@
 
 const state = {
   debug: false,
+  darkMode: false,
 
   init: async (store) => {
-    const states = await store.get(store.stateKey) || store.stateDefault;
+    const initialStates = await store.get(store.stateKey);
+    const states = initialStates || store.stateDefault;
+
     state.debug = states.debug;
+    state.darkMode = states.darkMode;
+
+    if (initialStates === null) {
+      await store.set(store.stateDefault, states);
+    }
 
     // Command line option to turn on debugging state
-    // > localStorage.setItem('~~state~~', JSON.stringify({ debug: true }))
-    // console.log('state.init', { state });
-    state.debug && console.log('state.init', { state });
+    console.log('state.init', { state });
   }
 };
 
@@ -18,7 +24,8 @@ const store = {
   storedKey: '~~stored~~',
   stateKey: '~~state~~',
   stateDefault: {
-    debug: false
+    debug: false,
+    darkMode: false
   },
 
   init: () => {
@@ -57,11 +64,15 @@ const testing = {
   store: null,
   html: null,
 
+  body: null,
+
   checklistName: null,
   checklists: null,
+  settings: null,
 
   newChecklistItem: null,
   copyChecklistItem: null,
+  settingsItem: null,
 
   newChecklistWrapper: null,
   newChecklistWrapperState: false,
@@ -77,11 +88,20 @@ const testing = {
     testing.store = store;
     testing.html = html;
 
+    testing.body = document.getElementById('body');
+
+    testing.state.debug && console.log('dark-mode', { darkMode: testing.state.darkMode });
+    if (!!testing.state.darkMode) {
+      testing.body.classList.add('dark-mode');
+    }
+
     testing.checklistName = document.getElementById('checklist-name');
     testing.checklists = document.getElementById('checklists');
+    testing.settings = document.getElementById('settings');
 
     testing.newChecklistItem = document.getElementById('nav-new-checklist-item');
     testing.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
+    testing.settingsItem = document.getElementById('nav-settings-item');
 
     testing.newChecklistWrapper = document.getElementById('new-checklist-wrapper');
     testing.newChecklistWrapperState = false;
@@ -368,5 +388,69 @@ ${ content }
 
     state[category][question].checked = checkedState;
     await testing.store.set(name, state);
-  }
+  },
+
+  buildSettingsState: () => {
+    const debug = testing.state.debug;
+    const darkMode = testing.state.darkMode;
+
+    const content = `
+      <label class="checkbox-label">
+        <input type="checkbox" id="debug-mode" name="debug-mode" ${ (debug ? "checked" : "") } onchange="testing.changeDebugMode()" />
+        <span class="checkbox-custom"></span>
+        <span class="checkbox-title">Debug</span>
+      </label>
+      <label class="checkbox-label">
+        <input type="checkbox" id="dark-mode" name="dark-mode" ${ (darkMode ? "checked" : "") } onchange="testing.changeDarkMode()" />
+        <span class="checkbox-custom"></span>
+        <span class="checkbox-title">Dark Mode</span>
+      </label>
+    `;
+    let wrapper = testing.html.fragmentFromString(content);
+
+    testing.settings.innerHTML = "";
+    testing.settings.appendChild(wrapper);
+  },
+  triggerSettings: () => {
+    testing.newChecklistItem.classList.add('hidden');
+    testing.newChecklistWrapper.classList.add('hidden');
+    testing.checklists.classList.add('hidden');
+
+    testing.settings.classList.remove('hidden');
+    testing.settingsItem.classList.remove('hidden');
+
+    testing.buildSettingsState();
+  },
+  closeSettings: () => {
+    testing.newChecklistItem.classList.remove('hidden');
+    testing.checklists.classList.remove('hidden');
+
+    testing.settings.classList.add('hidden');
+    testing.settingsItem.classList.add('hidden');
+  },
+
+  changeDebugMode: async () => {
+    let debug = testing.state.debug;
+    const darkMode = testing.state.darkMode;
+
+    debug = !debug;
+    testing.state.debug = debug;
+
+    await testing.store.set(testing.store.stateKey, { debug, darkMode });
+  },
+  changeDarkMode: async () => {
+    const debug = testing.state.debug;
+    let darkMode = testing.state.darkMode;
+
+    darkMode = !darkMode;
+    testing.state.darkMode = darkMode;
+
+    if (!!darkMode) {
+      testing.body.classList.add('dark-mode');
+    } else {
+      testing.body.classList.remove('dark-mode');
+    }
+
+    await testing.store.set(testing.store.stateKey, { debug, darkMode });
+  },
 }

@@ -11,13 +11,16 @@
   <link rel="stylesheet" type="text/css" href="reset.css" media="screen" />
   <link rel="stylesheet" type="text/css" href="style.css" media="screen" />
 </head>
-<body>
+<body id="body">
   <div class="application-title">checklist</div>
   
   <div class="outer-wrapper">
     <div class="inner-wrapper">
       <div class="navigation white">
         <div id="nav-new-checklist-item">
+          <a href="#" onclick="testing.triggerSettings()" title="Change Settings">
+            <img class="change-settings-item" src="images/setting.svg" />
+          </a>
           <a href="#" onclick="testing.triggerNewChecklist()" title="Create New Checklist">
             <img class="new-checklist-item" src="images/plus.svg" />
           </a>
@@ -27,6 +30,11 @@
             <img class="copy-checklist-item" src="images/document.svg" />
           </a>
           <a href="#" onclick="testing.closeChecklist()" title="Close Checklist">
+            <img class="close-checklist-item" src="images/error.svg" />
+          </a>
+        </div>
+        <div id="nav-settings-item" class="hidden">
+          <a href="#" onclick="testing.closeSettings()" title="Close Settings">
             <img class="close-checklist-item" src="images/error.svg" />
           </a>
         </div>
@@ -45,16 +53,21 @@
 
       <div id="checklists" class="checklists"></div>
       <div id="displayed-checklist" class="displayed-checklist hidden"></div>
+      <div id="settings" class="settings hidden"></div>
+
       <textarea id="copy-area" class="block-display"></textarea>
     </div>
   </div>
 
   <script src="main.js"></script>
   <script>
-    store.init();
-    state.init(store);
-    html.init();
-    testing.init(state, store, html);
+    async function init() {
+      await store.init();
+      await state.init(store);
+      await html.init();
+      await testing.init(state, store, html);
+    }
+    init();
   </script>
   <!--
     <div>Icons made by <a href="https://www.flaticon.com/authors/freepik" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/"                 title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"                 title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>
