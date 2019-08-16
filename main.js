@@ -73,6 +73,7 @@ const testing = {
   newChecklistItem: null,
   copyChecklistItem: null,
   settingsItem: null,
+  messageItem: null,
 
   newChecklistWrapper: null,
   newChecklistWrapperState: false,
@@ -102,6 +103,7 @@ const testing = {
     testing.newChecklistItem = document.getElementById('nav-new-checklist-item');
     testing.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
     testing.settingsItem = document.getElementById('nav-settings-item');
+    testing.messageItem = document.getElementById('message');
 
     testing.newChecklistWrapper = document.getElementById('new-checklist-wrapper');
     testing.newChecklistWrapperState = false;
@@ -369,6 +371,16 @@ ${ content }
     
     testing.copyAreaItem.select();
     document.execCommand('copy');
+
+    testing.messageItem.innerHTML = "Copied as Markdown.";
+    testing.messageItem.classList.remove('hidden');
+    setTimeout(function() {
+      testing.messageItem.classList.add('hide-2s');
+      setTimeout(function() {
+        testing.messageItem.classList.remove('hide-2s');
+        testing.messageItem.classList.add('hidden');
+      }, 2500);
+    }, 1000);
   },
   closeChecklist: () => {
     testing.state.debug && console.log('closeChecklist');
