@@ -42,7 +42,7 @@ body {
     left: calc(calc(calc(100% - 500px) / 2) - 11rem);
     opacity: 0.65;
     position: fixed;
-    top: calc(calc(274px / 2) + 25px);
+    top: calc(calc(100% - 274px) / 2.75);
     transform: rotate(-90deg);
   }
 }
