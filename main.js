@@ -1,17 +1,37 @@
 
 const state = {
   debug: false,
-  darkMode: false,
+  displayMode: '',
+  colors: {},
+
+  colorDefault: {
+    backgroundColor: '#ffffff',
+    foregroundColor: '#000000',
+    altBackgroundColor: '#fafad2'
+  },
+  colorDark: {
+    backgroundColor: '#000000',
+    foregroundColor: '#ffffff',
+    altBackgroundColor: '#2f4f4f'
+  },
 
   init: async (store) => {
     const initialStates = await store.get(store.stateKey);
     const states = initialStates || store.stateDefault;
 
     state.debug = states.debug;
-    state.darkMode = states.darkMode;
+    state.displayMode = states.displayMode;
 
     if (initialStates === null) {
       await store.set(store.stateDefault, states);
+    }
+
+    if (state.displayMode === '') {
+      state.colors = state.colorDefault;
+    } else if (state.displayMode === 'darkMode') {
+      state.colors = state.colorDark;
+    } else if (state.displayMode === 'customMode') {
+      state.colors = states.colors || state.colorDark;
     }
 
     // Command line option to turn on debugging state
@@ -25,7 +45,8 @@ const store = {
   stateKey: '~~state~~',
   stateDefault: {
     debug: false,
-    darkMode: false
+    displayMode: '' // '', 'darkMode', 'customMode'
+    // if customMode, include foreground, background1 and background2 colors
   },
 
   init: () => {
@@ -84,6 +105,10 @@ const testing = {
   triggerCopyItem: null,
   copyAreaItem: null,
 
+  background: null,
+  altBackground: null,
+  foreground: null,
+
   init: async (state, store, html) => {
     testing.state = state;
     testing.store = store;
@@ -91,9 +116,11 @@ const testing = {
 
     testing.body = document.getElementById('body');
 
-    testing.state.debug && console.log('dark-mode', { darkMode: testing.state.darkMode });
-    if (!!testing.state.darkMode) {
+    testing.state.debug && console.log('display-mode', { dysplayMode: testing.state.displayMode });
+    if (testing.state.displayMode === 'darkMode') {
       testing.body.classList.add('dark-mode');
+    } else if (testing.state.displayMode === '' || testing.state.displayMode === 'customMode') {
+      testing.body.classList.remove('dark-mode');
     }
 
     testing.checklistName = document.getElementById('checklist-name');
@@ -117,6 +144,10 @@ const testing = {
 
     testing.structure = await testing.store.getStructure();
     testing.state.debug && console.log('structure', { "testing.structure": testing.structure });
+
+    if (testing.state.displayMode === 'customMode') {
+      testing.setCustomColors();      
+    }
   },
 
   getStoredElements: async (attach) => {
@@ -404,7 +435,7 @@ ${ content }
 
   buildSettingsState: () => {
     const debug = testing.state.debug;
-    const darkMode = testing.state.darkMode;
+    const displayMode = testing.state.displayMode;
 
     const content = `
       <label class="checkbox-label">
@@ -412,11 +443,30 @@ ${ content }
         <span class="checkbox-custom"></span>
         <span class="checkbox-title">Debug</span>
       </label>
+
       <label class="checkbox-label">
-        <input type="checkbox" id="dark-mode" name="dark-mode" ${ (darkMode ? "checked" : "") } onchange="testing.changeDarkMode()" />
+        <input type="checkbox" id="dark-mode" name="dark-mode" ${ (displayMode === 'darkMode' ? "checked" : "") } onchange="testing.changeDarkMode()" />
         <span class="checkbox-custom"></span>
         <span class="checkbox-title">Dark Mode</span>
       </label>
+
+      <label class="checkbox-label">
+        <input type="checkbox" id="custom-mode" name="custom-mode" ${ (displayMode === 'customMode' ? "checked" : "") } onchange="testing.changeCustomMode()" />
+        <span class="checkbox-custom"></span>
+        <span class="checkbox-title">Custom Mode</span>
+      </label>
+      <div class="group">
+        <input type="color" id="background-color" name="background-color" value="${ testing.state.colors.backgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
+        <label for="background-color">Background Color</label>
+      </div>
+      <div class="group">
+        <input type="color" id="alt-background-color" name="alt-background-color" value="${ testing.state.colors.altBackgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
+        <label for="alt-background-color">Alt. Background Color</label>
+      </div>
+      <div class="group">
+        <input type="color" id="foreground-color" name="foreground-color" value="${ testing.state.colors.foregroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
+        <label for="foreground-color">Foreground Color</label>
+      </div>
     `;
     let wrapper = testing.html.fragmentFromString(content);
 
@@ -432,6 +482,11 @@ ${ content }
     testing.settingsItem.classList.remove('hidden');
 
     testing.buildSettingsState();
+    setTimeout(() => {
+      testing.background = document.getElementById('background-color');
+      testing.altBackground = document.getElementById('alt-background-color');
+      testing.foreground = document.getElementById('foreground-color');
+    }, 200);
   },
   closeSettings: () => {
     testing.newChecklistItem.classList.remove('hidden');
@@ -441,28 +496,97 @@ ${ content }
     testing.settingsItem.classList.add('hidden');
   },
 
+  disableCustomColorModeStates: (state) => {
+    console.log('disableCustomColorModeStates', { state });
+    if (state === true) {
+      testing.background.disabled = state;
+      testing.altBackground.disabled = state;
+      testing.foreground.disabled = state;  
+    } else {
+      console.log('... removing attribute disabled')
+      testing.background.removeAttribute('disabled');
+      testing.altBackground.removeAttribute('disabled');
+      testing.foreground.removeAttribute('disabled');
+    }
+  },
+
+  changeCustomMode: async () => {
+    const debug = testing.state.debug;
+
+    testing.state.displayMode = testing.state.displayMode === 'customMode' ? '' : 'customMode';
+    let displayMode = testing.state.displayMode;
+
+    if (displayMode === 'customMode') {
+      testing.body.classList.remove('dark-mode');
+      testing.state.colors = testing.state.colorDark;
+      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorDark });
+    } else {
+      testing.body.classList.remove('dark-mode');
+      testing.state.colors = testing.state.colorDefault;
+      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: {} });
+      testing.disableCustomColorModeStates(true);
+      testing.removeCustomColors();
+    }
+
+    testing.buildSettingsState();
+    if (displayMode === 'customMode') {
+      setTimeout(() => {
+        testing.disableCustomColorModeStates(false);
+      }, 200);
+    }
+  },
   changeDebugMode: async () => {
     let debug = testing.state.debug;
-    const darkMode = testing.state.darkMode;
+    const displayMode = testing.state.displayMode;
 
     debug = !debug;
     testing.state.debug = debug;
 
-    await testing.store.set(testing.store.stateKey, { debug, darkMode });
+    await testing.store.set(testing.store.stateKey, { debug, displayMode });
   },
   changeDarkMode: async () => {
     const debug = testing.state.debug;
-    let darkMode = testing.state.darkMode;
 
-    darkMode = !darkMode;
-    testing.state.darkMode = darkMode;
+    testing.state.displayMode = testing.state.displayMode === 'darkMode' ? '' : 'darkMode';
+    let displayMode = testing.state.displayMode;
 
-    if (!!darkMode) {
+    if (displayMode === 'darkMode') {
       testing.body.classList.add('dark-mode');
+      testing.state.colors = testing.state.colorDark;
     } else {
       testing.body.classList.remove('dark-mode');
+      testing.state.colors = testing.state.colorDefault;
     }
 
-    await testing.store.set(testing.store.stateKey, { debug, darkMode });
+    await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: {} });
+    testing.buildSettingsState();
+    testing.disableCustomColorModeStates(true);
+    testing.removeCustomColors();
   },
+  changeIndividualColor: () => {
+    const debug = testing.state.debug;
+    const displayMode = testing.state.displayMode;
+
+    const backgroundColor = testing.background.value;
+    const altBackgroundColor = testing.altBackground.value;
+    const foregroundColor = testing.foreground.value;
+    console.log({ backgroundColor, altBackgroundColor, foregroundColor });
+
+    testing.state.colors = {
+      backgroundColor, altBackgroundColor, foregroundColor
+    };
+    testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
+    testing.setCustomColors();
+  },
+
+  removeCustomColors: () => {
+    testing.body.removeAttribute('style');
+  },
+  setCustomColors: () => {
+    testing.body.setAttribute('style', `
+      --background-color: ${ testing.state.colors.backgroundColor };
+      --alt-background-color: ${ testing.state.colors.altBackgroundColor };
+      --foreground-color: ${ testing.state.colors.foregroundColor };
+    `.trim());
+  }
 }

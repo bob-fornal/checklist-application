@@ -10,6 +10,7 @@ body.dark-mode {
   --foreground-color: white;
   --title-color: lightcoral;
   --alt-background-color: darkslategray;
+  color: #2f4f4f;
 }
 body {
   background-color: var(--background-color);
@@ -17,6 +18,11 @@ body {
   display: flex;
   font-family: Arial, Helvetica, sans-serif;
   justify-content: center;
+}
+
+.group {
+  padding-left: 2.5rem;
+  padding-top: 0.25rem;  
 }
 
 @media (max-width: 520px) {
