@@ -520,6 +520,8 @@ ${ content }
       testing.body.classList.remove('dark-mode');
       testing.state.colors = testing.state.colorDark;
       await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorDark });
+      testing.setCustomColors();
+      console.log('changeCustomMode on ...');
     } else {
       testing.body.classList.remove('dark-mode');
       testing.state.colors = testing.state.colorDefault;
@@ -570,11 +572,11 @@ ${ content }
     const backgroundColor = testing.background.value;
     const altBackgroundColor = testing.altBackground.value;
     const foregroundColor = testing.foreground.value;
-    console.log({ backgroundColor, altBackgroundColor, foregroundColor });
 
     testing.state.colors = {
       backgroundColor, altBackgroundColor, foregroundColor
     };
+    console.log(testing.state.colors);
     testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
     testing.setCustomColors();
   },
