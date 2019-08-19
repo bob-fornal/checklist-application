@@ -14,6 +14,11 @@ const state = {
     foregroundColor: '#ffffff',
     altBackgroundColor: '#2f4f4f'
   },
+  colorCustomStart: {
+    backgroundColor: '#444444',
+    foregroundColor: '#999999',
+    altBackgroundColor: '#555555'
+  },
 
   init: async (store) => {
     const initialStates = await store.get(store.stateKey);
@@ -518,7 +523,7 @@ ${ content }
 
     if (displayMode === 'customMode') {
       testing.body.classList.remove('dark-mode');
-      testing.state.colors = testing.state.colorDark;
+      testing.state.colors = testing.state.colorCustomStart;
       await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorDark });
       testing.setCustomColors();
       console.log('changeCustomMode on ...');
@@ -576,7 +581,7 @@ ${ content }
     testing.state.colors = {
       backgroundColor, altBackgroundColor, foregroundColor
     };
-    console.log(testing.state.colors);
+    console.log('change individual color ...', testing.state.colors);
     testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
     testing.setCustomColors();
   },
