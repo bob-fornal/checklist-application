@@ -34,6 +34,56 @@ const state = {
 
     // Command line option to turn on debugging state
     console.log('state.init', { state });
+  },
+
+  calculateLogoColor: (color) => {
+    // WHITE BACKGROUND
+    const light = {
+      r: 128,
+      g: 0,
+      b: 0
+    };
+    // BLACK BACKGROUND
+    const dark = {
+      r: 240,
+      g: 128,
+      b: 128
+    };
+
+    const brightness = state.calculateBrightness(color);
+
+    const r = state.calculateIndividualColorAdjust(dark.r, light.r, brightness);
+    const g = state.calculateIndividualColorAdjust(dark.g, light.g, brightness);
+    const b = state.calculateIndividualColorAdjust(dark.b, light.b, brightness);
+
+    const result = state.rgbToHex({ r, g, b });
+    return result;
+  },
+  calculateIndividualColorAdjust: (dark, light, brightness) => {
+    const diff = dark - light;
+    const adjust = Math.round(diff * (brightness / 255));
+    return dark - adjust;
+  },
+  calculateBrightness: (color) => {
+    // #000000 BLACK = 0
+    // #ffffff WHITE = 255
+    const rgb = state.hexToRGB(color);
+    return Math.round(0.2126 * rgb.r + 0.7152 * rgb.g + 0.0722 * rgb.b);
+  },
+  hexToRGB: (hex) => {
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  },
+  componentToHex: (color) => {
+    const hex = color.toString(16);
+    return hex.length === 1 ? "0" + hex : hex;
+  },
+  rgbToHex: (color) => {
+    return `#${ state.componentToHex(color.r) }${ state.componentToHex(color.g) }${ state.componentToHex(color.b) }`;
   }
 };
 
@@ -530,13 +580,13 @@ ${ categoryContent }
   },
 
   disableCustomColorModeStates: (state) => {
-    console.log('disableCustomColorModeStates', { state });
+    testing.state.debug && console.log('disableCustomColorModeStates', { state });
     if (state === true) {
       testing.background.disabled = state;
       testing.altBackground.disabled = state;
       testing.foreground.disabled = state;  
     } else {
-      console.log('... removing attribute disabled')
+      testing.state.debug && console.log('... removing attribute disabled')
       testing.background.removeAttribute('disabled');
       testing.altBackground.removeAttribute('disabled');
       testing.foreground.removeAttribute('disabled');
@@ -554,7 +604,7 @@ ${ categoryContent }
       testing.state.colors = testing.state.colorCustomStart;
       await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorCustomStart });
       testing.setCustomColors();
-      console.log('changeCustomMode on ...');
+      testing.state.debug && console.log('changeCustomMode on ...');
     } else {
       testing.body.classList.remove('dark-mode');
       testing.state.colors = testing.state.colorDefault;
@@ -590,7 +640,7 @@ ${ categoryContent }
     testing.state.colors = {
       backgroundColor, altBackgroundColor, foregroundColor
     };
-    console.log('change individual color ...', testing.state.colors);
+    testing.state.debug && console.log('change individual color ...', testing.state.colors);
     testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
     testing.setCustomColors();
   },
@@ -599,10 +649,13 @@ ${ categoryContent }
     testing.body.removeAttribute('style');
   },
   setCustomColors: () => {
+    const logoColor = testing.state.calculateLogoColor(testing.state.colors.backgroundColor);
+    testing.state.debug && console.log('setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor });
     testing.body.setAttribute('style', `
       --background-color: ${ testing.state.colors.backgroundColor };
       --alt-background-color: ${ testing.state.colors.altBackgroundColor };
       --foreground-color: ${ testing.state.colors.foregroundColor };
+      --title-color: ${ logoColor };
     `.trim());
   }
 }
