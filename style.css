@@ -152,15 +152,16 @@ body {
 .active-checklist {
   background-color: var(--background-color);
   color: var(--foreground-color);
+  height: 60px;
   margin-top: 0.5rem;
   padding: 0.5rem;
   position: relative;
 }
-.active-checklist:not(.editing) {
-  height: 25px;
+.active-title {
+  font-weight: bold;
 }
-.active-checklist.editing {
-  height: 60px;
+.active-category {
+  margin-left: 1rem;
 }
 .checklist-title {
   display: inline-block;
@@ -170,6 +171,7 @@ body {
 .checklist-action {
   position: absolute;
   right: 0.5rem;
+  top: 1.5rem;
 }
 .checklist-action.editing {
   top: 26px;
@@ -292,3 +294,8 @@ a {
   from { opacity: 1; }
   to { opacity: 0; }
 }
+
+.content-categories {
+  margin-left: 2rem;
+}
+

@@ -1,94 +1,62 @@
 {
-  "order": ["pre", "POST"],
-  "pre": {
-    "order": [
-      "shortQuestion1",
-      "shortQuestion2",
-      "shortQuestion3",
-      "shortQuestion4",
-      "shortQuestion5",
-      "shortQuestion6",
-      "shortQuestion7",
-      "shortQuestion8"
-    ],
-    "title": "Pre Questions",
-    "shortQuestion1": {
-      "title": "Question One",
-      "checked": false
-    },
-    "shortQuestion2": {
-      "title": "Question Two, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion3": {
-      "title": "Question 3, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion4": {
-      "title": "Question 4, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion5": {
-      "title": "Question Five, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion6": {
-      "title": "Question 6, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion7": {
-      "title": "Question 7, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion8": {
-      "title": "Question 8, this is a long question on purposes to test wrapping",
-      "checked": false
+  "categories": [
+    {
+      "title": "On Commit",
+      "questions": [{
+        "title": "Black Box: Tests do not care how it is done, they test what is done.",
+        "checked": false
+      }, {
+        "title": "Public API: Tests cover all methods in public API.",
+        "checked": false
+      }, {
+        "title": "Readable: Tests are written in understandable language to make for easy understanding / debugging.",
+        "checked": false
+      }, {
+        "title": "Line Coverage: line coverage is at least 80%.",
+        "checked": false
+      }, {
+        "title": "Branch Coverage: Branch coverage is at least 80%.",
+        "checked": false
+      }, {
+        "title": "Self-Contained: Tests do not rely on global state, or other test suites, in order to pass.",
+        "checked": false
+      }, {
+        "title": "Positive Testing: Tests account for the expected use of your code.",
+        "checked": false
+      }, {
+        "title": "Negative Testing: Tests simulate unexpected and/or error scenarios and code handles them gracefully.",
+        "checked": false
+      }, {
+        "title": "No Ignores: No tests are “X-ed” out or commented out.",
+        "checked": false
+      }, {
+        "title": "Don’t Test 3rd-Party Code: Your tests don’t test third-party code; that code should come with its own tests.",
+        "checked": false
+      }]
+    }, {
+      "title": "On Review",
+      "questions": [{
+        "title": "Alphabetizing CSS",
+        "checked": false
+      }, {
+        "title": "Single over Double Quotes",
+        "checked": false
+      }, {
+        "title": "Tabs over Spaces",
+        "checked": false
+      }]
+    }, {
+      "title": "On Bug Triage",
+      "questions": [{
+        "title": "Does a test for this issue exist?",
+        "checked": false
+      }, {
+        "title": "Does this issue need tested?",
+        "checked": false
+      }, {
+        "title": "Where do we need to test?",
+        "checked": false
+      }]
     }
-  },
-  "POST": {
-    "order": [
-      "shortQuestion1",
-      "shortQuestion2",
-      "shortQuestion3",
-      "shortQuestion4",
-      "shortQuestion5",
-      "shortQuestion6",
-      "shortQuestion7",
-      "shortQuestion8"
-    ],
-    "title": "Post Questions",
-    "shortQuestion1": {
-      "title": "Question One",
-      "checked": false
-    },
-    "shortQuestion2": {
-      "title": "Question Two, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion3": {
-      "title": "Question 3, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion4": {
-      "title": "Question 4, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion5": {
-      "title": "Question Five, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion6": {
-      "title": "Question 6, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion7": {
-      "title": "Question 7, this is a long question on purposes to test wrapping",
-      "checked": false
-    },
-    "shortQuestion8": {
-      "title": "Question 8, this is a long question on purposes to test wrapping",
-      "checked": false
-    }
-  }
-
+  ]
 }

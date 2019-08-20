@@ -9,15 +9,10 @@ const state = {
     foregroundColor: '#000000',
     altBackgroundColor: '#fafad2'
   },
-  colorDark: {
-    backgroundColor: '#000000',
-    foregroundColor: '#ffffff',
-    altBackgroundColor: '#2f4f4f'
-  },
   colorCustomStart: {
-    backgroundColor: '#444444',
-    foregroundColor: '#999999',
-    altBackgroundColor: '#555555'
+    backgroundColor: '#111111',
+    foregroundColor: '#eeeeee',
+    altBackgroundColor: '#2f4f4f'
   },
 
   init: async (store) => {
@@ -28,13 +23,11 @@ const state = {
     state.displayMode = states.displayMode;
 
     if (initialStates === null) {
-      await store.set(store.stateDefault, states);
+      await store.set(store.stateKey, states);
     }
 
     if (state.displayMode === '') {
       state.colors = state.colorDefault;
-    } else if (state.displayMode === 'darkMode') {
-      state.colors = state.colorDark;
     } else if (state.displayMode === 'customMode') {
       state.colors = states.colors || state.colorDark;
     }
@@ -50,7 +43,7 @@ const store = {
   stateKey: '~~state~~',
   stateDefault: {
     debug: false,
-    displayMode: '' // '', 'darkMode', 'customMode'
+    displayMode: '' // '', 'customMode' (dark mode is custom mode in start state)
     // if customMode, include foreground, background1 and background2 colors
   },
 
@@ -93,6 +86,7 @@ const testing = {
   body: null,
 
   checklistName: null,
+  newCategories: null,
   checklists: null,
   settings: null,
 
@@ -122,13 +116,12 @@ const testing = {
     testing.body = document.getElementById('body');
 
     testing.state.debug && console.log('display-mode', { dysplayMode: testing.state.displayMode });
-    if (testing.state.displayMode === 'darkMode') {
+    if (testing.state.displayMode === 'customMode') {
       testing.body.classList.add('dark-mode');
-    } else if (testing.state.displayMode === '' || testing.state.displayMode === 'customMode') {
-      testing.body.classList.remove('dark-mode');
     }
 
     testing.checklistName = document.getElementById('checklist-name');
+    testing.newCategories = document.getElementById('new-categories');
     testing.checklists = document.getElementById('checklists');
     testing.settings = document.getElementById('settings');
 
@@ -166,27 +159,28 @@ const testing = {
     }
   },
 
-  buildChecklistElement: (name)  => {
+  buildChecklistElement: (list)  => {
     const template = `
-      <div id="checklist-${ name }" class="active-checklist">
-        <a id="title-${ name }" class="checklist-title"href="#" onclick="testing.triggerChecklistView('${ name }')">
-          ${ name }
+      <div id="checklist-${ list.name }" class="active-checklist">
+        <a id="title-${ list.name }" class="checklist-title"href="#" onclick="testing.triggerChecklistView('${ list.name }')">
+          <div class="active-title">${ list.name }</div>
+          <div class="active-category">${ list.title }</div>
         </a>
-        <input id="edit-${ name }" class="input-text edit-checklist-name  hidden" value="${ name }" onkeypress="return testing.handleNamedKeypress('${ name }', event)" />
+        <input id="edit-${ list.name }" class="input-text edit-checklist-name  hidden" value="${ list.name }" onkeypress="return testing.handleNamedKeypress('${ list.name }', event)" />
 
-        <span id="actions-save-${ name }" class="checklist-action editing hidden">
-          <a href="#" onclick="testing.triggerEditSave('${ name }')">
+        <span id="actions-save-${ list.name }" class="checklist-action editing hidden">
+          <a href="#" onclick="testing.triggerEditSave('${ list.name }')">
             <img src="images/checked.svg" />
           </a>
-          <a href="#" onclick="testing.triggerEditCancel('${ name }')">
+          <a href="#" onclick="testing.triggerEditCancel('${ list.name }')">
             <img src="images/error.svg" />
           </a>
         </span>
-        <span id="actions-${ name }" class="checklist-action">
-          <a href="#" onclick="testing.triggerEdit('${ name }')">
+        <span id="actions-${ list.name }" class="checklist-action">
+          <a href="#" onclick="testing.triggerEdit('${ list.name }')">
             <img src="images/edit.svg" />
           </a>
-          <a href="#" onclick="testing.triggerDelete('${ name }')">
+          <a href="#" onclick="testing.triggerDelete('${ list.name }')">
             <img src="images/trash.svg" />
           </a>
         </span>
@@ -221,9 +215,45 @@ const testing = {
     testing.newChecklistWrapperState = false;
     testing.newChecklistWrapper.classList.add('hidden');
   },
+  selectedCategory: null,
+  createChecklistCategories: () => {
+    let categoryElements = '';
+    let first = true;
+    testing.structure.categories.forEach((category, index) => {
+      if (first === true) {
+        testing.selectedCategory = category;
+      }
+      categoryElements += `
+        <label class="checkbox-label">
+          <input class="all-categories" type="checkbox" data-title="${ category.title }" id="select-${ index }" name="select-${ category.title }" ${ (first ? "checked" : "") } onchange="testing.checkboxCategoryChange('${ category.title }', event)" />
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-title">${ category.title }</span>
+        </label>
+      `;
+      first = false;
+    });
+
+    let wrapper = testing.html.fragmentFromString(categoryElements);
+    testing.newCategories.innerHTML = "";
+    testing.newCategories.appendChild(wrapper);
+  },
+  checkboxCategoryChange: (categoryTitle) => {
+    const categories = document.getElementsByClassName('all-categories');
+    for (let i = 0, len = categories.length; i < len; i++) {
+      const element = categories[i];
+      const elementTitle = element.getAttribute('data-title');
+      element.checked = (elementTitle === categoryTitle);
+    }
+    testing.structure.categories.forEach((category) => {
+      if (category.title === categoryTitle) {
+        testing.selectedCategory = category;
+      }
+    });
+  },  
   triggerNewChecklist: () => {
     testing.newChecklistWrapperState = !testing.newChecklistWrapperState;
     if (testing.newChecklistWrapperState === true) {
+      testing.createChecklistCategories();
       testing.newChecklistWrapper.classList.remove('hidden');
       testing.checklistName.focus();
     } else {
@@ -235,20 +265,32 @@ const testing = {
   },
   triggerSaveChecklist: async () => {
     const name = testing.checklistName.value;
-    let stored = await testing.store.get(testing.store.storedKey) || [];
-    if (stored.includes(name)) {
-      // Duplicate Name (Handle)?
+    const category = testing.selectedCategory;
+
+    if (name.length === 0 || category === null) {
       return;
-    } else {
-      stored.push(name);
-      stored = stored.sort();
-
-      await testing.store.set(testing.store.storedKey, stored);
-      await testing.store.set(name, testing.structure);
-
-      testing.closeNewChecklist();
-      testing.getStoredElements(testing.checklists);
     }
+
+    let stored = await testing.store.get(testing.store.storedKey) || [];
+    let exists = false;
+    stored.forEach((item) => {
+      if (item.name === name) {
+        exists = true;
+      }
+    })
+    if (exists) {
+      return;
+    }
+
+    stored.push({ name, title: category.title });
+    stored = stored.sort((a, b) => a.name - b.name);
+
+    await testing.store.set(testing.store.storedKey, stored);
+    await testing.store.set(name, category);
+
+    testing.selectedCategory = null;
+    testing.closeNewChecklist();
+    testing.getStoredElements(testing.checklists);
   },
 
   triggerDelete: async (name) => {
@@ -327,57 +369,49 @@ const testing = {
   },
 
   buildChecklistState: (state) => {
+    testing.state.debug && console.log('buildChecklistState', { state });
     let content = '';
-    for (let category of state.order) {
-      const categoryData = state[category];
-      const categoryTitle = `<h3 class="category-title">${ categoryData.title }</h3>`;
-      let categoryContent = '';
-      for (let question of categoryData.order) {
-        const data = categoryData[question];
-        const questionState = data.checked;
-        categoryContent += `
-          <label class="checkbox-label">
-            <input type="checkbox" id="${ category }-${ question }" name="${ category }-${ question }" ${ (questionState ? "checked" : "") } onchange="testing.checkboxStateChange('${ state.name }', '${ category }', '${ question }', event)" />
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-title">${ data.title }</span>
-          </label>
-        `;
-      }
-      content += `
-        ${ categoryTitle }
-        ${ categoryContent }
+    const categoryTitle = `<h3 class="category-title">${ state.title }</h3>`;
+    let categoryContent = '';
+    state.questions.forEach((data, index) => {
+      const questionState = data.checked;
+      const question = data.title;
+      categoryContent += `
+        <label class="checkbox-label">
+          <input type="checkbox" id="question-${ index }" name="question-${ index }" ${ (questionState ? "checked" : "") } onchange="testing.checkboxStateChange('${ state.name }', '${ index }', event)" />
+          <span class="checkbox-custom"></span>
+          <span class="checkbox-title">${ question }</span>
+        </label>
       `;
-    }
+    });
+
+    content += `
+      ${ categoryTitle }
+      ${ categoryContent }
+    `;
+
     const template = `
       <h2 class="section-title">${ state.name }</h2>
       ${ content }
     `;
-    let wrapper = testing.html.fragmentFromString(template);
 
+    let wrapper = testing.html.fragmentFromString(template);
     testing.displayedChecklist.innerHTML = "";
     testing.displayedChecklist.appendChild(wrapper);
   },
   buildChecklistCopy: (state) => {
-    let content = '';
-    for (let category of state.order) {
-      const categoryData = state[category];
-      const categoryTitle = `### ${ categoryData.title }`;
-      let categoryContent = '';
-      for (let question of categoryData.order) {
-        const data = categoryData[question];
-        const questionState = data.checked;
-        categoryContent += `
-${ (questionState ? "[x]" : "[ ]") } ${ data.title }
+    const categoryTitle = `### ${ state.title }`;
+    let categoryContent = '';
+    for (let question of state.questions) {
+      categoryContent += `
+${ (question.checked === true ? "[x]" : "[ ]") } ${ question.title }
         `;
-      }
-      content += `
-${ categoryTitle }
-${ categoryContent }
-      `;
     }
+
     const template = `
 ## ${ state.name }
-${ content }
+${ categoryTitle }
+${ categoryContent }
     `;
 
     return template;
@@ -399,7 +433,7 @@ ${ content }
   },
   triggerCopy: async (name) => {
     const state = await testing.store.get(name);
-    testing.state.debug && console.log('triggerCopy', { name, state });
+    testing.state.debug && console.log('triggerCopy', { state });
 
     state.name = name;
     const copy = testing.buildChecklistCopy(state);
@@ -428,13 +462,13 @@ ${ content }
     testing.displayedChecklist.classList.add('hidden');
   },
 
-  checkboxStateChange: async (name, category, question, event) => {
-    testing.state.debug && console.log('checkboxStateChange', { name, category, question });
+  checkboxStateChange: async (name, index, event) => {
+    testing.state.debug && console.log('checkboxStateChange', { name, index });
 
     const checkedState = event.target.checked;
     const state = await testing.store.get(name);
 
-    state[category][question].checked = checkedState;
+    state.questions[index].checked = checkedState;
     await testing.store.set(name, state);
   },
 
@@ -450,15 +484,9 @@ ${ content }
       </label>
 
       <label class="checkbox-label">
-        <input type="checkbox" id="dark-mode" name="dark-mode" ${ (displayMode === 'darkMode' ? "checked" : "") } onchange="testing.changeDarkMode()" />
-        <span class="checkbox-custom"></span>
-        <span class="checkbox-title">Dark Mode</span>
-      </label>
-
-      <label class="checkbox-label">
         <input type="checkbox" id="custom-mode" name="custom-mode" ${ (displayMode === 'customMode' ? "checked" : "") } onchange="testing.changeCustomMode()" />
         <span class="checkbox-custom"></span>
-        <span class="checkbox-title">Custom Mode</span>
+        <span class="checkbox-title">Dark Mode</span>
       </label>
       <div class="group">
         <input type="color" id="background-color" name="background-color" value="${ testing.state.colors.backgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
@@ -522,9 +550,9 @@ ${ content }
     let displayMode = testing.state.displayMode;
 
     if (displayMode === 'customMode') {
-      testing.body.classList.remove('dark-mode');
+      testing.body.classList.add('dark-mode');
       testing.state.colors = testing.state.colorCustomStart;
-      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorDark });
+      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorCustomStart });
       testing.setCustomColors();
       console.log('changeCustomMode on ...');
     } else {
@@ -550,25 +578,6 @@ ${ content }
     testing.state.debug = debug;
 
     await testing.store.set(testing.store.stateKey, { debug, displayMode });
-  },
-  changeDarkMode: async () => {
-    const debug = testing.state.debug;
-
-    testing.state.displayMode = testing.state.displayMode === 'darkMode' ? '' : 'darkMode';
-    let displayMode = testing.state.displayMode;
-
-    if (displayMode === 'darkMode') {
-      testing.body.classList.add('dark-mode');
-      testing.state.colors = testing.state.colorDark;
-    } else {
-      testing.body.classList.remove('dark-mode');
-      testing.state.colors = testing.state.colorDefault;
-    }
-
-    await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: {} });
-    testing.buildSettingsState();
-    testing.disableCustomColorModeStates(true);
-    testing.removeCustomColors();
   },
   changeIndividualColor: () => {
     const debug = testing.state.debug;
