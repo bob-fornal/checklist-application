@@ -20,6 +20,11 @@ var mockStore = {
 };
 var mockLocalStorage = {
   storage: {},
+  stateKey: '~~key~~',
+  stateDefault: {
+    debug: false,
+    displayMode: ''
+  },
   getItem: async (key) => {
     if (!(key in mockLocalStorage.storage)) {
       return null;
@@ -251,16 +256,23 @@ describe('Testing Checklist', () => {
         'trigger-copy',
         'copy-area'
       ];
+      const colors = [
+        'background-color',
+        'alt-background-color',
+        'foreground-color'
+      ];
       document.getElementById = jasmine.createSpy('HTML Element').and.callFake((key) => {
         if (key === 'body') {
           return document.createElement('body');
         } else if (divs.includes(key)) {
           return document.createElement('div');
+        } else if (color.includes(key)) {
+          return document.createElement('input').setAttribute('type', 'color');
         }
       });
 
-      await state.init(mockStore);
       await store.init(mockLocalStorage);
+      await state.init(store);
       await html.init();
       await testing.init(state, store, html);
     });
@@ -274,12 +286,135 @@ describe('Testing Checklist', () => {
       expect(testing.state).not.toBeNull();
       expect(testing.store).not.toBeNull();
       expect(testing.html).not.toBeNull();
+
+      expect(testing.selectedCategory).toBeNull();
     });
 
     it('expects functions', () => {
       expect(testing.init).toEqual(jasmine.any(Function));
+
+      expect(testing.getStoredElements).toEqual(jasmine.any(Function));
+
+      expect(testing.buildChecklistElement).toEqual(jasmine.any(Function));
+
+      expect(testing.handleKeypress).toEqual(jasmine.any(Function));
+      expect(testing.handleNamedKeypress).toEqual(jasmine.any(Function));
+
+      expect(testing.closeNewChecklist).toEqual(jasmine.any(Function));
+      expect(testing.createChecklistCategories).toEqual(jasmine.any(Function));
+      expect(testing.checkboxCategoryChange).toEqual(jasmine.any(Function));
+      expect(testing.triggerNewChecklist).toEqual(jasmine.any(Function));
+      expect(testing.triggerCancelNewChecklist).toEqual(jasmine.any(Function));
+      expect(testing.triggerSaveChecklist).toEqual(jasmine.any(Function));
+
+      expect(testing.triggerDelete).toEqual(jasmine.any(Function));
+
+      expect(testing.closeEdit).toEqual(jasmine.any(Function));
+      expect(testing.triggerEdit).toEqual(jasmine.any(Function));
+      expect(testing.triggerEditSave).toEqual(jasmine.any(Function));
+      expect(testing.triggerEditCancel).toEqual(jasmine.any(Function));
+
+      expect(testing.buildChecklistState).toEqual(jasmine.any(Function));
+      expect(testing.buildChecklistCopy).toEqual(jasmine.any(Function));
+
+      expect(testing.triggerChecklistView).toEqual(jasmine.any(Function));
+      expect(testing.triggerCopy).toEqual(jasmine.any(Function));
+      expect(testing.closeChecklist).toEqual(jasmine.any(Function));
+
+      expect(testing.checkboxStateChange).toEqual(jasmine.any(Function));
+
+      expect(testing.buildSettingsState).toEqual(jasmine.any(Function));
+      expect(testing.triggerSettings).toEqual(jasmine.any(Function));
+      expect(testing.closeSettings).toEqual(jasmine.any(Function));
+
+      expect(testing.disableCustomColorModeStates).toEqual(jasmine.any(Function));
+
+      expect(testing.changeCustomMode).toEqual(jasmine.any(Function));
+      expect(testing.changeDebugMode).toEqual(jasmine.any(Function));
+      expect(testing.changeIndividualColor).toEqual(jasmine.any(Function));
+
+      expect(testing.removeCustomColors).toEqual(jasmine.any(Function));
+      expect(testing.setCustomColors).toEqual(jasmine.any(Function));
     });
 
+    // testing.changeCustomMode
 
+    it('expects "changeDebugMode" to toggle stored debug state [with colors]', async () => {
+      const backgroundColor = '#000000';
+      const altBackgroundColor = '#222222';
+      const foregroundColor = '#ffffff';
+      testing.state.debug = false;
+      testing.state.displayMode = '';
+      testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '', colors: {
+        backgroundColor, altBackgroundColor, foregroundColor
+      }});
+
+      await testing.changeDebugMode();
+
+      expect(testing.state.debug).toEqual(true);
+      expect(testing.state.displayMode).toEqual('');
+      const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+      expect(storedState).toEqual(jasmine.objectContaining({
+        debug: true,
+        displayMode: '',
+        colors: jasmine.objectContaining({
+          backgroundColor: '#000000',
+          altBackgroundColor: '#222222',
+          foregroundColor: '#ffffff'
+        })
+      }));
+    });
+    it('expects "changeDebugMode" to toggle stored debug state [without colors]', async () => {
+      testing.state.debug = false;
+      testing.state.displayMode = '';
+      testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '' });
+
+      await testing.changeDebugMode();
+
+      expect(testing.state.debug).toEqual(true);
+      expect(testing.state.displayMode).toEqual('');
+      const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+      expect(storedState).toEqual(jasmine.objectContaining({
+        debug: true,
+        displayMode: ''
+      }));
+    });
+
+    it('expects "changeIndividualColor" to get colors and store', async () => {
+      testing.background = { value: '#000000' };
+      testing.altBackground = { value: '#222222' };
+      testing.foreground = { value: '#ffffff' };
+
+      await testing.changeIndividualColor();
+
+      expect(testing.state.colors).toEqual({
+        backgroundColor: '#000000',
+        altBackgroundColor: '#222222',
+        foregroundColor: '#ffffff'
+      });
+      const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+      expect(storedState).toEqual(jasmine.objectContaining({
+        debug: false,
+        displayMode: "",
+        colors: jasmine.objectContaining({
+          backgroundColor: "#000000",
+          altBackgroundColor: "#222222",
+          foregroundColor: "#ffffff"
+        })
+      }));
+    });
+
+    it('expects "removeCustomColors" to remove attached styles on body', () => {
+      testing.setCustomColors();
+      testing.removeCustomColors();
+      const style = testing.body.getAttribute('style');
+      expect(style).toBeNull();
+    });
+
+    it('expects "setCustomColors" to attach style attributes to body', () => {
+      testing.setCustomColors();
+      const style = testing.body.getAttribute('style').replace(/\s/gm, '');
+      expect(style).toEqual('--background-color:#ffffff;--alt-background-color:#fafad2;--foreground-color:#000000;--title-color:#800000;');
+    });
   });
 });

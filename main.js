@@ -626,11 +626,17 @@ ${ categoryContent }
   changeDebugMode: async () => {
     let debug = testing.state.debug;
     const displayMode = testing.state.displayMode;
+    const state = await testing.store.get(testing.store.stateKey);
+    console.log('testing', { state });
 
     debug = !debug;
     testing.state.debug = debug;
 
-    await testing.store.set(testing.store.stateKey, { debug, displayMode });
+    if ('colors' in state) {
+      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: state.colors });
+    } else {
+      await testing.store.set(testing.store.stateKey, { debug, displayMode });
+    }
   },
   changeIndividualColor: () => {
     const debug = testing.state.debug;
@@ -650,7 +656,7 @@ ${ categoryContent }
 
   removeCustomColors: () => {
     testing.body.removeAttribute('style');
-  },//jshint ignore
+  },
   setCustomColors: () => {
     const logoColor = testing.state.calculateLogoColor(testing.state.colors.backgroundColor);
     testing.state.debug && console.log('setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor }); // jshint ignore:line
