@@ -1,0 +1,23 @@
+{
+  "name": "checklist-application",
+  "version": "1.0.0",
+  "description": "Checklist Application",
+  "main": "main.js",
+  "dependencies": {},
+  "devDependencies": {
+    "jasmine": "^3.4.0"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bob-fornal/checklist-application.git"
+  },
+  "author": "Bob Fornal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/bob-fornal/checklist-application/issues"
+  },
+  "homepage": "https://github.com/bob-fornal/checklist-application#readme"
+}
