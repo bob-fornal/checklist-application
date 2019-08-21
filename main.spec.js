@@ -337,84 +337,88 @@ describe('Testing Checklist', () => {
       expect(testing.setCustomColors).toEqual(jasmine.any(Function));
     });
 
-    // testing.changeCustomMode
+    describe('-- configure modes', () => {
+      // testing.changeCustomMode
 
-    it('expects "changeDebugMode" to toggle stored debug state [with colors]', async () => {
-      const backgroundColor = '#000000';
-      const altBackgroundColor = '#222222';
-      const foregroundColor = '#ffffff';
-      testing.state.debug = false;
-      testing.state.displayMode = '';
-      testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '', colors: {
-        backgroundColor, altBackgroundColor, foregroundColor
-      }});
+      it('expects "changeDebugMode" to toggle stored debug state [with colors]', async () => {
+        const backgroundColor = '#000000';
+        const altBackgroundColor = '#222222';
+        const foregroundColor = '#ffffff';
+        testing.state.debug = false;
+        testing.state.displayMode = '';
+        testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '', colors: {
+          backgroundColor, altBackgroundColor, foregroundColor
+        }});
 
-      await testing.changeDebugMode();
+        await testing.changeDebugMode();
 
-      expect(testing.state.debug).toEqual(true);
-      expect(testing.state.displayMode).toEqual('');
-      const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
-      expect(storedState).toEqual(jasmine.objectContaining({
-        debug: true,
-        displayMode: '',
-        colors: jasmine.objectContaining({
+        expect(testing.state.debug).toEqual(true);
+        expect(testing.state.displayMode).toEqual('');
+        const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+        expect(storedState).toEqual(jasmine.objectContaining({
+          debug: true,
+          displayMode: '',
+          colors: jasmine.objectContaining({
+            backgroundColor: '#000000',
+            altBackgroundColor: '#222222',
+            foregroundColor: '#ffffff'
+          })
+        }));
+      });
+      it('expects "changeDebugMode" to toggle stored debug state [without colors]', async () => {
+        testing.state.debug = false;
+        testing.state.displayMode = '';
+        testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '' });
+
+        await testing.changeDebugMode();
+
+        expect(testing.state.debug).toEqual(true);
+        expect(testing.state.displayMode).toEqual('');
+        const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+        expect(storedState).toEqual(jasmine.objectContaining({
+          debug: true,
+          displayMode: ''
+        }));
+      });
+
+      it('expects "changeIndividualColor" to get colors and store', async () => {
+        testing.background = { value: '#000000' };
+        testing.altBackground = { value: '#222222' };
+        testing.foreground = { value: '#ffffff' };
+
+        await testing.changeIndividualColor();
+
+        expect(testing.state.colors).toEqual({
           backgroundColor: '#000000',
           altBackgroundColor: '#222222',
           foregroundColor: '#ffffff'
-        })
-      }));
-    });
-    it('expects "changeDebugMode" to toggle stored debug state [without colors]', async () => {
-      testing.state.debug = false;
-      testing.state.displayMode = '';
-      testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '' });
-
-      await testing.changeDebugMode();
-
-      expect(testing.state.debug).toEqual(true);
-      expect(testing.state.displayMode).toEqual('');
-      const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
-      expect(storedState).toEqual(jasmine.objectContaining({
-        debug: true,
-        displayMode: ''
-      }));
-    });
-
-    it('expects "changeIndividualColor" to get colors and store', async () => {
-      testing.background = { value: '#000000' };
-      testing.altBackground = { value: '#222222' };
-      testing.foreground = { value: '#ffffff' };
-
-      await testing.changeIndividualColor();
-
-      expect(testing.state.colors).toEqual({
-        backgroundColor: '#000000',
-        altBackgroundColor: '#222222',
-        foregroundColor: '#ffffff'
+        });
+        const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+        expect(storedState).toEqual(jasmine.objectContaining({
+          debug: false,
+          displayMode: "",
+          colors: jasmine.objectContaining({
+            backgroundColor: "#000000",
+            altBackgroundColor: "#222222",
+            foregroundColor: "#ffffff"
+          })
+        }));
       });
-      const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
-      expect(storedState).toEqual(jasmine.objectContaining({
-        debug: false,
-        displayMode: "",
-        colors: jasmine.objectContaining({
-          backgroundColor: "#000000",
-          altBackgroundColor: "#222222",
-          foregroundColor: "#ffffff"
-        })
-      }));
     });
 
-    it('expects "removeCustomColors" to remove attached styles on body', () => {
-      testing.setCustomColors();
-      testing.removeCustomColors();
-      const style = testing.body.getAttribute('style');
-      expect(style).toBeNull();
-    });
-
-    it('expects "setCustomColors" to attach style attributes to body', () => {
-      testing.setCustomColors();
-      const style = testing.body.getAttribute('style').replace(/\s/gm, '');
-      expect(style).toEqual('--background-color:#ffffff;--alt-background-color:#fafad2;--foreground-color:#000000;--title-color:#800000;');
+    describe('-- custom colors', () => {
+      it('expects "removeCustomColors" to remove attached styles on body', () => {
+        testing.setCustomColors();
+        testing.removeCustomColors();
+        const style = testing.body.getAttribute('style');
+        expect(style).toBeNull();
+      });
+  
+      it('expects "setCustomColors" to attach style attributes to body', () => {
+        testing.setCustomColors();
+        const style = testing.body.getAttribute('style').replace(/\s/gm, '');
+        expect(style).toEqual('--background-color:#ffffff;--alt-background-color:#fafad2;--foreground-color:#000000;--title-color:#800000;');
+      });  
     });
   });
 });
