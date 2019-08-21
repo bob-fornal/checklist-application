@@ -97,8 +97,8 @@ const store = {
     // if customMode, include foreground, background1 and background2 colors
   },
 
-  init: () => {
-    store.storage = window.localStorage;
+  init: (storage) => {
+    store.storage = storage;
   },
 
   get: async (key) => {
