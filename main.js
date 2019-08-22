@@ -483,7 +483,7 @@ ${ categoryContent }
     testing.checklists.classList.add('hidden');
     testing.displayedChecklist.classList.remove('hidden');
   },
-  triggerCopy: async (name) => {
+  triggerCopy: async (name, forTest = false) => {
     const state = await testing.store.get(name);
     testing.state.debug && console.log('triggerCopy', { state }); // jshint ignore:line
 
@@ -496,13 +496,16 @@ ${ categoryContent }
 
     testing.messageItem.innerHTML = "Copied as Markdown.";
     testing.messageItem.classList.remove('hidden');
-    setTimeout(function() {
-      testing.messageItem.classList.add('hide-2s');
+    
+    if (forTest === false) {
       setTimeout(function() {
-        testing.messageItem.classList.remove('hide-2s');
-        testing.messageItem.classList.add('hidden');
-      }, 2500);
-    }, 1000);
+        testing.messageItem.classList.add('hide-2s');
+        setTimeout(function() {
+          testing.messageItem.classList.remove('hide-2s');
+          testing.messageItem.classList.add('hidden');
+        }, 2500);
+      }, 1000);  
+    }
   },
   closeChecklist: () => {
     testing.state.debug && console.log('closeChecklist'); // jshint ignore:line
@@ -558,7 +561,7 @@ ${ categoryContent }
     testing.settings.innerHTML = "";
     testing.settings.appendChild(wrapper);
   },
-  triggerSettings: () => {
+  triggerSettings: (forTest = false) => {
     testing.newChecklistItem.classList.add('hidden');
     testing.newChecklistWrapper.classList.add('hidden');
     testing.checklists.classList.add('hidden');
@@ -567,11 +570,14 @@ ${ categoryContent }
     testing.settingsItem.classList.remove('hidden');
 
     testing.buildSettingsState();
-    setTimeout(() => {
-      testing.background = document.getElementById('background-color');
-      testing.altBackground = document.getElementById('alt-background-color');
-      testing.foreground = document.getElementById('foreground-color');
-    }, 200);
+
+    if (forTest === false) {
+      setTimeout(() => {
+        testing.background = document.getElementById('background-color');
+        testing.altBackground = document.getElementById('alt-background-color');
+        testing.foreground = document.getElementById('foreground-color');
+      }, 200);  
+    }
   },
   closeSettings: () => {
     testing.newChecklistItem.classList.remove('hidden');
@@ -605,13 +611,13 @@ ${ categoryContent }
     if (displayMode === 'customMode') {
       testing.body.classList.add('dark-mode');
       testing.state.colors = testing.state.colorCustomStart;
-      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colorCustomStart });
+      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
       testing.setCustomColors();
       testing.state.debug && console.log('changeCustomMode on ...'); // jshint ignore:line
     } else {
       testing.body.classList.remove('dark-mode');
       testing.state.colors = testing.state.colorDefault;
-      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: {} });
+      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
       testing.disableCustomColorModeStates(true);
       testing.removeCustomColors();
     }

@@ -39,7 +39,29 @@ var mockLocalStorage = {
   }
 };
 
+const helpers = {
+  createInputElement: (type, attributes = {}) => {
+    let element = document.createElement('input');
+    element.setAttribute('type', type);
+    for (let key in attributes) {
+      if (attributes.hasOwnProperty(key)) {
+        element.setAttribute(key, attributes[key])
+      }
+    }
+    return element;
+  }
+};
+
 describe('Testing Checklist', () => {
+
+  beforeEach(function() {
+    timerCallback = jasmine.createSpy("timerCallback");
+    jasmine.clock().install();
+  });
+  
+  afterEach(function() {
+    jasmine.clock().uninstall();
+  });
 
   describe('"state" object', () => {
     beforeEach(() => {
@@ -253,21 +275,25 @@ describe('Testing Checklist', () => {
         'message',
         'new-checklist-wrapper',
         'displayed-checklist',
-        'trigger-copy',
-        'copy-area'
+        'trigger-copy'
       ];
       const colors = [
         'background-color',
         'alt-background-color',
         'foreground-color'
       ];
+      const testarea = [
+        'copy-area'
+      ];
       document.getElementById = jasmine.createSpy('HTML Element').and.callFake((key) => {
         if (key === 'body') {
           return document.createElement('body');
         } else if (divs.includes(key)) {
           return document.createElement('div');
-        } else if (color.includes(key)) {
+        } else if (colors.includes(key)) {
           return document.createElement('input').setAttribute('type', 'color');
+        } else if (testarea.includes(key)) {
+          return document.createElement('textarea');
         }
       });
 
@@ -278,6 +304,8 @@ describe('Testing Checklist', () => {
     });
 
     afterEach(() => {
+      testing.settings = null;
+
       mockStore.storage = {};
       mockLocalStorage.storage = {};
     });
@@ -337,8 +365,192 @@ describe('Testing Checklist', () => {
       expect(testing.setCustomColors).toEqual(jasmine.any(Function));
     });
 
+    describe('-- checklist functionality', () => {
+      it('expects "triggerCopy" to build a markdown copy', async () => {
+        mockLocalStorage.storage.name = JSON.stringify({
+          title: 'test',
+          questions: [{
+            checked: true,
+            title: 'Question 1'
+          }, {
+            checked: false,
+            title: 'Question 2'
+          }]
+        });
+
+        await testing.triggerCopy('name', true);
+
+        const copycontent = testing.copyAreaItem.value.replace(/\s/gm, '');
+        expect(copycontent).toEqual('##name###test[x]Question1[]Question2');
+      });
+      it('expects "closeChecklist" to clean up hidden classes', () => {
+        testing.closeChecklist();
+
+        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
+        const copyChecklistItemState = testing.copyChecklistItem.getAttribute('class');
+        const checklistsState = testing.checklists.getAttribute('class');
+        const displayedChecklistState = testing.displayedChecklist.getAttribute('class');
+        expect(newChecklistItemState).toBeNull();
+        expect(copyChecklistItemState).toEqual('hidden');
+        expect(checklistsState).toBeNull();
+        expect(displayedChecklistState).toEqual('hidden');
+      });
+    });
+
+    it('expects "checkboxStateChange" to change the state of a question', async () => {
+      const event = {
+        target: {
+          checked: true
+        }
+      };
+      mockLocalStorage.storage.name = JSON.stringify({
+        questions: [
+          { item: 'test', checked: false }
+        ]
+      });
+
+      await testing.checkboxStateChange('name', 0, event);
+
+      const result = JSON.parse(mockLocalStorage.storage.name);
+      expect(result.questions[0].checked).toEqual(true);
+    });
+
+    describe('-- settings functionality', () => {
+      it('expects "buildSettingsState" to generate settings content [debug=FALSE, displayMode=""]', () => {
+        testing.state.debug = false;
+        testing.state.displayMode = '';
+
+        testing.buildSettingsState();
+
+        const innerHTML = testing.settings.innerHTML.replace(/\s/gm, '');
+        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+      });
+      it('expects "buildSettingsState" to generate settings content [debug=TRUE, displayMode=""]', () => {
+        testing.state.debug = true;
+        testing.state.displayMode = '';
+
+        testing.buildSettingsState();
+
+        const innerHTML = testing.settings.innerHTML.replace(/\s/gm, '');
+        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"checked=""onchange="testing.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+      });
+
+      it('expects "triggerSettings" to set up hidden classes and build state', () => {
+        testing.triggerSettings(true);
+
+        const innerHTML = testing.settings.innerHTML.replace(/\s/gm, '');
+        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
+        const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
+        const checklistsState = testing.checklists.getAttribute('class');
+        const settingsState = testing.settings.getAttribute('class');
+        const settingsItemState = testing.settingsItem.getAttribute('class');
+        expect(newChecklistItemState).toEqual('hidden');
+        expect(newChecklistWrapperState).toEqual('hidden');
+        expect(checklistsState).toEqual('hidden');
+        expect(settingsState).toBeNull();;
+        expect(settingsItemState).toBeNull();
+      });
+      it('expects "closeSettings" to clean up hidden classes', () => {
+        testing.closeSettings();
+
+        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
+        const checklistsState = testing.checklists.getAttribute('class');
+        const settingsState = testing.settings.getAttribute('class');
+        const settingsItemState = testing.settingsItem.getAttribute('class');
+        expect(newChecklistItemState).toBeNull();
+        expect(checklistsState).toBeNull();
+        expect(settingsState).toEqual('hidden');
+        expect(settingsItemState).toEqual('hidden');
+      });
+    });
+
+    it('expects "disableCustomColorModeStates" to change disabled state [TRUE]', () => {
+      testing.background = helpers.createInputElement('color');
+      testing.altBackground = helpers.createInputElement('color');
+      testing.foreground = helpers.createInputElement('color');
+
+      testing.disableCustomColorModeStates(true);
+
+      const backgroundState = testing.background.getAttribute('disabled');
+      const altBackgroundState = testing.altBackground.getAttribute('disabled');
+      const foregroundState = testing.foreground.getAttribute('disabled');
+      expect(backgroundState).toEqual('');
+      expect(altBackgroundState).toEqual('');
+      expect(foregroundState).toEqual('');
+    });
+    it('expects "disableCustomColorModeStates" to change disabled state [FALSE]', () => {
+      testing.background = helpers.createInputElement('color', { disabled: true });
+      testing.altBackground = helpers.createInputElement('color', { disabled: true });
+      testing.foreground = helpers.createInputElement('color', { disabled: true });
+
+      testing.disableCustomColorModeStates(false);
+
+      const backgroundState = testing.background.getAttribute('disabled');
+      const altBackgroundState = testing.altBackground.getAttribute('disabled');
+      const foregroundState = testing.foreground.getAttribute('disabled');
+      expect(backgroundState).toBeNull();
+      expect(altBackgroundState).toBeNull();
+      expect(foregroundState).toBeNull();
+    });
+
     describe('-- configure modes', () => {
-      // testing.changeCustomMode
+      it('expects "changeCustomMode" to toggle custom mode [ON]', async () => {
+        testing.state.displayMode = '';
+        testing.background = helpers.createInputElement('color', { disabled: true });
+        testing.altBackground = helpers.createInputElement('color', { disabled: true });
+        testing.foreground = helpers.createInputElement('color', { disabled: true });
+
+        await testing.changeCustomMode();
+        jasmine.clock().tick(210);
+
+        expect(testing.state.displayMode).toEqual('customMode');
+        const bodyClasses = testing.body.getAttribute('class');
+        expect(bodyClasses).toEqual('dark-mode');
+        expect(testing.state.colors).toEqual({
+          backgroundColor: '#111111',
+          altBackgroundColor: '#2f4f4f',
+          foregroundColor: '#eeeeee'
+        });
+        const storedState = JSON.parse(mockLocalStorage.storage['~~state~~']);
+        expect(storedState).toEqual(jasmine.objectContaining({
+          debug: false,
+          displayMode: "customMode",
+          colors: jasmine.objectContaining({
+            backgroundColor: "#111111",
+            altBackgroundColor: "#2f4f4f",
+            foregroundColor: "#eeeeee"
+          })
+        }));
+      });
+      it('expects "changeCustomMode" to toggle custom mode [OFF]', async () => {
+        testing.state.displayMode = 'customMode';
+        testing.background = helpers.createInputElement('color', { disabled: true });
+        testing.altBackground = helpers.createInputElement('color', { disabled: true });
+        testing.foreground = helpers.createInputElement('color', { disabled: true });
+
+        await testing.changeCustomMode();
+        jasmine.clock().tick(210);
+
+        expect(testing.state.displayMode).toEqual('');
+        const bodyClasses = testing.body.getAttribute('class');
+        expect(bodyClasses).not.toEqual('dark-mode');
+        expect(testing.state.colors).toEqual({
+          backgroundColor: '#ffffff',
+          altBackgroundColor: '#fafad2',
+          foregroundColor: '#000000'
+        });
+        const storedState = JSON.parse(mockLocalStorage.storage['~~state~~']);
+        expect(storedState).toEqual(jasmine.objectContaining({
+          debug: false,
+          displayMode: "",
+          colors: jasmine.objectContaining({
+            backgroundColor: "#ffffff",
+            altBackgroundColor: "#fafad2",
+            foregroundColor: "#000000"
+          })
+        }));
+      });
 
       it('expects "changeDebugMode" to toggle stored debug state [with colors]', async () => {
         const backgroundColor = '#000000';
@@ -346,7 +558,7 @@ describe('Testing Checklist', () => {
         const foregroundColor = '#ffffff';
         testing.state.debug = false;
         testing.state.displayMode = '';
-        testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '', colors: {
+        mockLocalStorage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '', colors: {
           backgroundColor, altBackgroundColor, foregroundColor
         }});
 
@@ -354,7 +566,7 @@ describe('Testing Checklist', () => {
 
         expect(testing.state.debug).toEqual(true);
         expect(testing.state.displayMode).toEqual('');
-        const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+        const storedState = JSON.parse(mockLocalStorage.storage['~~state~~']);
         expect(storedState).toEqual(jasmine.objectContaining({
           debug: true,
           displayMode: '',
@@ -368,13 +580,13 @@ describe('Testing Checklist', () => {
       it('expects "changeDebugMode" to toggle stored debug state [without colors]', async () => {
         testing.state.debug = false;
         testing.state.displayMode = '';
-        testing.store.storage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '' });
+        mockLocalStorage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '' });
 
         await testing.changeDebugMode();
 
         expect(testing.state.debug).toEqual(true);
         expect(testing.state.displayMode).toEqual('');
-        const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+        const storedState = JSON.parse(mockLocalStorage.storage['~~state~~']);
         expect(storedState).toEqual(jasmine.objectContaining({
           debug: true,
           displayMode: ''
@@ -393,7 +605,7 @@ describe('Testing Checklist', () => {
           altBackgroundColor: '#222222',
           foregroundColor: '#ffffff'
         });
-        const storedState = JSON.parse(testing.store.storage.storage['~~state~~']);
+        const storedState = JSON.parse(mockLocalStorage.storage['~~state~~']);
         expect(storedState).toEqual(jasmine.objectContaining({
           debug: false,
           displayMode: "",
