@@ -397,6 +397,7 @@ const testing = {
     testing.closeEdit(name);
 
     let stored = await testing.store.get(testing.store.storedKey) || [];
+    console.log('---', { stored, name, newName });
     stored.splice(stored.indexOf(name), 1);
     stored.push(newName);
     stored = stored.sort();
@@ -474,7 +475,7 @@ ${ categoryContent }
     testing.state.debug && console.log('triggerChecklistView', { name, state }); // jshint ignore:line
 
     state.name = name;
-    testing.triggerCopyItem.setAttribute('onclick', `testing.triggerCopy('${ name }')`);
+    await testing.triggerCopyItem.setAttribute('onclick', `testing.triggerCopy('${ name }')`);
     testing.buildChecklistState(state);
 
     testing.newChecklistItem.classList.add('hidden');

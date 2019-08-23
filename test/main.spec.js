@@ -283,6 +283,9 @@ describe('Testing Checklist', () => {
         'alt-background-color',
         'foreground-color'
       ];
+      const input = [
+        'edit-name'
+      ];
       const testarea = [
         'copy-area'
       ];
@@ -295,6 +298,12 @@ describe('Testing Checklist', () => {
           return document.createElement('input').setAttribute('type', 'color');
         } else if (testarea.includes(key)) {
           return document.createElement('textarea');
+        } else if (input.includes(key)) {
+          let input = document.createElement('input');
+          input.value = 'new-name';
+          return input;
+        } else {
+          console.log('mocking ... getElementById', { key });
         }
       });
 
@@ -366,7 +375,74 @@ describe('Testing Checklist', () => {
       expect(testing.setCustomColors).toEqual(jasmine.any(Function));
     });
 
-    describe('-- checklist functionality', () => {
+    describe('[title edit functionality', () => {
+      it('expects "triggerEditSave" to trigger closeEdit with name and store', async () => {
+        spyOn(testing, 'closeEdit').and.stub();
+        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([
+          'list', 'name'
+        ]);
+        mockLocalStorage.storage.name = JSON.stringify({ title: 'test' });
+
+        await testing.triggerEditSave('name');
+
+        expect(testing.closeEdit).toHaveBeenCalledWith('name');
+        const stored = JSON.parse(mockLocalStorage.storage['~~stored~~']);
+        const oldList = mockLocalStorage.storage.name || null;
+        const newList = JSON.parse(mockLocalStorage.storage['new-name']);
+        expect(stored).toEqual(['list', 'new-name']);
+        expect(oldList).toBeNull();
+        expect(newList).toEqual({ title: 'test' });
+      });
+      it('expects "triggerEditCancel" to trigger closeEdit with name', () => {
+        spyOn(testing, 'closeEdit').and.stub();
+
+        testing.triggerEditCancel('name');
+
+        expect(testing.closeEdit).toHaveBeenCalledWith('name');
+      });
+    });
+
+    describe('[checklist functionality]', () => {
+      it('expects "buildChecklistCopy" to generate copied content from state', () => {
+        const template = testing.buildChecklistCopy({
+          name: 'name',
+          title: 'test-title',
+          questions: [{
+            checked: true,
+            title: 'question 1'
+          }, {
+            checked: false,
+            title: 'question 2'
+          }]
+        }).replace(/\s/gm, '');
+
+        expect(template).toEqual('##name###test-title[x]question1[]question2');
+      });
+
+      it('expects "triggerChecklistView" to set up hidden classes and build state', async () => {
+        mockLocalStorage.storage.name = JSON.stringify({
+          title: "test",
+          questions: [{
+            title: "QN 1",
+            checked: false
+          }]
+        });
+
+        await testing.triggerChecklistView('name');
+
+        const onclickState = testing.triggerCopyItem.getAttribute('onclick');
+        expect(onclickState).toEqual('testing.triggerCopy(\'name\')');
+        const displayedChecklist = testing.displayedChecklist.innerHTML.replace(/\s/gm, '');
+        expect(displayedChecklist).toEqual('<h2class="section-title">name</h2><h3class="category-title">test</h3><labelclass="checkbox-label"><inputtype="checkbox"id="question-0"name="question-0"onchange="testing.checkboxStateChange(\'name\',\'0\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">QN1</span></label>');
+        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
+        const copyChecklistItemState = testing.copyChecklistItem.getAttribute('class');
+        const checklistsState = testing.checklists.getAttribute('class');
+        const displayedChecklistState = testing.displayedChecklist.getAttribute('class');
+        expect(newChecklistItemState).toEqual('hidden');
+        expect(copyChecklistItemState).toBeNull();
+        expect(checklistsState).toEqual('hidden');
+        expect(displayedChecklistState).toBeNull();
+      });
       it('expects "triggerCopy" to build a markdown copy', async () => {
         mockLocalStorage.storage.name = JSON.stringify({
           title: 'test',
@@ -416,7 +492,7 @@ describe('Testing Checklist', () => {
       expect(result.questions[0].checked).toEqual(true);
     });
 
-    describe('-- settings functionality', () => {
+    describe('[settings functionality]', () => {
       it('expects "buildSettingsState" to generate settings content [debug=FALSE, displayMode=""]', () => {
         testing.state.debug = false;
         testing.state.displayMode = '';
@@ -495,7 +571,7 @@ describe('Testing Checklist', () => {
       expect(foregroundState).toBeNull();
     });
 
-    describe('-- configure modes', () => {
+    describe('[configure modes]', () => {
       it('expects "changeCustomMode" to toggle custom mode [ON]', async () => {
         testing.state.displayMode = '';
         testing.background = helpers.createInputElement('color', { disabled: true });
@@ -619,7 +695,7 @@ describe('Testing Checklist', () => {
       });
     });
 
-    describe('-- custom colors', () => {
+    describe('[custom colors]', () => {
       it('expects "removeCustomColors" to remove attached styles on body', () => {
         testing.setCustomColors();
         testing.removeCustomColors();
