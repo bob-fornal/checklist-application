@@ -394,6 +394,27 @@ describe('Testing Checklist', () => {
       expect(testing.setCustomColors).toEqual(jasmine.any(Function));
     });
 
+    describe('[checklist functionality]', () => {
+      // triggerSaveChecklist
+    });
+
+    it('expects "triggerDelete" to remove stored data and getStoredElements', async () => {
+      spyOn(testing, 'getStoredElements').and.stub();
+      mockLocalStorage.storage['~~stored~~'] = JSON.stringify([
+        'name'
+      ]);
+      mockLocalStorage.storage.name = JSON.stringify({
+        title: 'title-name'
+      });
+
+      await testing.triggerDelete('name');
+
+      const stored = JSON.parse(mockLocalStorage.storage['~~stored~~']);
+      const nameData = mockLocalStorage.storage.name || null;
+      expect(stored).toEqual([]);
+      expect(nameData).toBeNull();
+    });
+
     describe('[title edit functionality', () => {
       it('expects "closeEdit" to set up hidden classes', () => {
         testing.closeEdit('test');
