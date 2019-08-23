@@ -395,14 +395,51 @@ describe('Testing Checklist', () => {
     });
 
     describe('[checklist functionality]', () => {
-      // triggerSaveChecklist
+      it('expects "triggerSaveChecklist" to attempt checklist creation [EXIST]', async () => {
+        spyOn(testing, 'closeNewChecklist').and.stub();
+        spyOn(testing, 'getStoredElements').and.stub();
+        testing.checklistName.value = 'test-name';
+        testing.selectedCategory = {};
+        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+          name: 'test-name'
+        }]);
+
+        await testing.triggerSaveChecklist();
+
+        expect(testing.selectedCategory).not.toBeNull();
+        expect(testing.closeNewChecklist).not.toHaveBeenCalled();
+        expect(testing.getStoredElements).not.toHaveBeenCalled();
+      });
+      it('expects "triggerSaveChecklist" to attempt checklist creation [NOT EXIST]', async () => {
+        spyOn(testing, 'closeNewChecklist').and.stub();
+        spyOn(testing, 'getStoredElements').and.stub();
+        testing.checklistName.value = 'test-name';
+        testing.selectedCategory = { data: 'mock-data' };
+        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+          name: 'test-not-name'
+        }]);
+
+        await testing.triggerSaveChecklist();
+
+        const stored = JSON.parse(mockLocalStorage.storage['~~stored~~']);
+        const data = JSON.parse(mockLocalStorage.storage['test-name']);
+        expect(stored).toEqual([{
+          name: 'test-not-name'
+        }, {
+          name: 'test-name'
+        }]);
+        expect(data).toEqual({ data: 'mock-data' });
+        expect(testing.selectedCategory).toBeNull();
+        expect(testing.closeNewChecklist).toHaveBeenCalled();
+        expect(testing.getStoredElements).toHaveBeenCalled();
+      });
     });
 
     it('expects "triggerDelete" to remove stored data and getStoredElements', async () => {
       spyOn(testing, 'getStoredElements').and.stub();
-      mockLocalStorage.storage['~~stored~~'] = JSON.stringify([
-        'name'
-      ]);
+      mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+        name: 'name'
+      }]);
       mockLocalStorage.storage.name = JSON.stringify({
         title: 'title-name'
       });
@@ -446,9 +483,11 @@ describe('Testing Checklist', () => {
       });
       it('expects "triggerEditSave" to trigger closeEdit with name and store', async () => {
         spyOn(testing, 'closeEdit').and.stub();
-        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([
-          'list', 'name'
-        ]);
+        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+          name: 'list'
+        }, {
+          name: 'name'
+        }]);
         mockLocalStorage.storage.name = JSON.stringify({ title: 'test' });
 
         await testing.triggerEditSave('name');
@@ -457,7 +496,11 @@ describe('Testing Checklist', () => {
         const stored = JSON.parse(mockLocalStorage.storage['~~stored~~']);
         const oldList = mockLocalStorage.storage.name || null;
         const newList = JSON.parse(mockLocalStorage.storage['new-name']);
-        expect(stored).toEqual(['list', 'new-name']);
+        expect(stored).toEqual([{
+          name: 'list'
+        }, {
+          name: 'new-name'
+        }]);
         expect(oldList).toBeNull();
         expect(newList).toEqual({ title: 'test' });
       });

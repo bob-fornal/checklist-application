@@ -328,6 +328,7 @@ const testing = {
         exists = true;
       }
     });
+    console.log('---', { exists, name });
     if (exists) {
       return;
     }
@@ -397,10 +398,19 @@ const testing = {
     testing.closeEdit(name);
 
     let stored = await testing.store.get(testing.store.storedKey) || [];
-    console.log('---', { stored, name, newName });
-    stored.splice(stored.indexOf(name), 1);
-    stored.push(newName);
-    stored = stored.sort();
+    let index = -1;
+    for (let i = 0, len = stored.length; i < len; i++) {
+      if (stored[i].name === name) {
+        index = i;
+        break;
+      }
+    }
+    if (index > -1) {
+      let old = stored.splice(index, 1)[0];
+      old.name = newName;
+      stored.push(old);
+      stored = stored.sort((a, b) => a.name - b.name);
+    }
 
     const state = await testing.store.get(name);
     testing.state.debug && console.log('triggerEditSave', { state }); // jshint ignore:line
