@@ -7,10 +7,10 @@ module.exports = function(config) {
     // frameworks to use
     frameworks: ['jasmine'],
     files: [
-      'node_modules/fetch-mock/dist/es5/client-bundle.js',
+      './../node_modules/fetch-mock/dist/es5/client-bundle.js',
 
-      './*.js',
-      'test/**/*.spec.js'
+      './../js/**/*.js',
+      './**/*.spec.js'
     ],
     exclude: [],
     // preprocess matching files before serving them to the browser
