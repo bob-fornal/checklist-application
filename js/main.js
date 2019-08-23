@@ -328,7 +328,6 @@ const testing = {
         exists = true;
       }
     });
-    console.log('---', { exists, name });
     if (exists) {
       return;
     }

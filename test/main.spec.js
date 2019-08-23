@@ -395,6 +395,9 @@ describe('Testing Checklist', () => {
     });
 
     describe('[checklist functionality]', () => {
+      
+      // testing.triggerCancelNewChecklist
+
       it('expects "triggerSaveChecklist" to attempt checklist creation [EXIST]', async () => {
         spyOn(testing, 'closeNewChecklist').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
