@@ -1,6 +1,7 @@
+
 var oldState = { ...state };
 
-var mockStore = {
+var mockState = {
   storage: {},
   stateKey: '~~key~~',
   stateDefault: {
@@ -8,14 +9,14 @@ var mockStore = {
     displayMode: ''
   },
   get: async (key) => {
-    if (key in mockStore.storage) {
-      return await mockStore.storage[key];
+    if (key in mockState.storage) {
+      return await mockState.storage[key];
     } else {
       return null;
     }
   },
   set: async (key, value) => {
-    mockStore.storage[key] = value;
+    mockState.storage[key] = value;
   }
 };
 var mockLocalStorage = {
@@ -55,11 +56,15 @@ const helpers = {
 describe('Testing Checklist', () => {
 
   beforeEach(function() {
+    fetchMock.get('./testing.json', { 'test': 'object' });
+
     timerCallback = jasmine.createSpy("timerCallback");
     jasmine.clock().install();
   });
   
   afterEach(function() {
+    fetchMock.reset();
+
     jasmine.clock().uninstall();
   });
 
@@ -69,8 +74,8 @@ describe('Testing Checklist', () => {
       state.displayMode = oldState.displayMode;
       state.colors = oldState.colors;
 
-      mockStore.storage = {};
-      mockStore.stateDefault = {
+      mockState.storage = {};
+      mockState.stateDefault = {
         debug: false,
         displayMode: ''
       };
@@ -131,7 +136,7 @@ describe('Testing Checklist', () => {
     });
 
     it('expects "init(store)" to configure values properly [default]', async () => {
-      await state.init(mockStore);
+      await state.init(mockState);
 
       expect(state.debug).toEqual(false);
       expect(state.colors).toEqual({
@@ -139,19 +144,19 @@ describe('Testing Checklist', () => {
         foregroundColor: '#000000',
         altBackgroundColor: '#fafad2'
       });
-      expect(mockStore.storage[mockStore.stateKey]).toEqual({
+      expect(mockState.storage[mockState.stateKey]).toEqual({
         debug: false,
         displayMode: ''
       });
     });
     it('expects "init(store)" to configure values properly [debug=true]', async () => {
-      mockStore.storage['~~key~~'] = {
+      mockState.storage['~~key~~'] = {
         debug: true,
         displayMode: ''
       };
-      mockStore.debug = true;
+      mockState.debug = true;
 
-      await state.init(mockStore);
+      await state.init(mockState);
 
       expect(state.debug).toEqual(true);
       expect(state.colors).toEqual({
@@ -159,13 +164,13 @@ describe('Testing Checklist', () => {
         foregroundColor: '#000000',
         altBackgroundColor: '#fafad2'
       });
-      expect(mockStore.storage[mockStore.stateKey]).toEqual({
+      expect(mockState.storage[mockState.stateKey]).toEqual({
         debug: true,
         displayMode: ''
       });
     });
     it('expects "init(store)" to configure values properly [colors=customMode]', async () => {
-      mockStore.storage['~~key~~'] = {
+      mockState.storage['~~key~~'] = {
         debug: false,
         displayMode: 'customMode',
         colors: {
@@ -174,9 +179,9 @@ describe('Testing Checklist', () => {
           altBackgroundColor: '#2f4f4f'
         }
       };
-      mockStore.displayMode = 'customMode';
+      mockState.displayMode = 'customMode';
 
-      await state.init(mockStore);
+      await state.init(mockState);
 
       expect(state.debug).toEqual(false);
       expect(state.colors).toEqual({
@@ -184,7 +189,7 @@ describe('Testing Checklist', () => {
         foregroundColor: '#eeeeee',
         altBackgroundColor: '#2f4f4f'
       });
-      expect(mockStore.storage[mockStore.stateKey]).toEqual({
+      expect(mockState.storage[mockState.stateKey]).toEqual({
         debug: false,
         displayMode: 'customMode',
         colors: {
@@ -221,12 +226,8 @@ describe('Testing Checklist', () => {
     });
 
     it('expects "getStructure" to fetch testing.json file', async () => {
-      fetchMock.get('./testing.json', { 'test': 'object' });
-
       const result = await store.getStructure();
       expect(result).toEqual({ 'test': 'object' });
-
-      fetchMock.reset();
     });
 
     it('expects "remove" to removeItem from storage', async () => {
@@ -306,7 +307,7 @@ describe('Testing Checklist', () => {
     afterEach(() => {
       testing.settings = null;
 
-      mockStore.storage = {};
+      mockState.storage = {};
       mockLocalStorage.storage = {};
     });
 
