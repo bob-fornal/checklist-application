@@ -264,6 +264,8 @@ describe('Testing Checklist', () => {
   });
 
   describe('"testing" object', () => {
+    let forTesting = {};
+
     beforeEach(async () => {
       const divs = [
         'checklist-name',
@@ -286,6 +288,15 @@ describe('Testing Checklist', () => {
       const input = [
         'edit-name'
       ];
+      const editDiv = [
+        'checklist-test',
+        'actions-test',
+        'actions-save-test',
+        'title-test'
+      ];
+      const editInput = [
+        'edit-test'
+      ];
       const testarea = [
         'copy-area'
       ];
@@ -302,6 +313,12 @@ describe('Testing Checklist', () => {
           let input = document.createElement('input');
           input.value = 'new-name';
           return input;
+        } else if (editDiv.includes(key)) {
+          forTesting[key] = document.createElement('div');
+          return forTesting[key];
+        } else if (editInput.includes(key)) {
+          forTesting[key] = document.createElement('input');
+          return forTesting[key];
         } else {
           console.log('mocking ... getElementById', { key });
         }
@@ -315,6 +332,8 @@ describe('Testing Checklist', () => {
 
     afterEach(() => {
       testing.settings = null;
+
+      forTesting = {};
 
       mockState.storage = {};
       mockLocalStorage.storage = {};
@@ -376,6 +395,34 @@ describe('Testing Checklist', () => {
     });
 
     describe('[title edit functionality', () => {
+      it('expects "closeEdit" to set up hidden classes', () => {
+        testing.closeEdit('test');
+
+        const editingState = forTesting['checklist-test'].getAttribute('class');
+        const actionsState = forTesting['actions-test'].getAttribute('class');
+        const saveState = forTesting['actions-save-test'].getAttribute('class');
+        const titleState = forTesting['title-test'].getAttribute('class');
+        const inputState = forTesting['edit-test'].getAttribute('class');
+        expect(editingState).toBeNull();
+        expect(actionsState).toBeNull();
+        expect(saveState).toEqual('hidden');
+        expect(titleState).toBeNull();
+        expect(inputState).toEqual('hidden');
+      });
+      it('expects "triggerEdit" to set up hidden classes', () => {
+        testing.triggerEdit('test');
+
+        const editingState = forTesting['checklist-test'].getAttribute('class');
+        const actionsState = forTesting['actions-test'].getAttribute('class');
+        const saveState = forTesting['actions-save-test'].getAttribute('class');
+        const titleState = forTesting['title-test'].getAttribute('class');
+        const inputState = forTesting['edit-test'].getAttribute('class');
+        expect(editingState).toEqual('editing');
+        expect(actionsState).toEqual('hidden');
+        expect(saveState).toBeNull();
+        expect(titleState).toEqual('hidden');
+        expect(inputState).toBeNull();
+      });
       it('expects "triggerEditSave" to trigger closeEdit with name and store', async () => {
         spyOn(testing, 'closeEdit').and.stub();
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([
