@@ -332,6 +332,7 @@ describe('Testing Checklist', () => {
 
     afterEach(() => {
       testing.settings = null;
+      testing.selectedCategory = null;
 
       forTesting = {};
 
@@ -397,7 +398,26 @@ describe('Testing Checklist', () => {
     describe('[checklist functionality]', () => {
       
       // testing.triggerCancelNewChecklist
+      it('expects "triggerNewChecklist" to change state and make visible [TRUE]', () => {
+        testing.newChecklistWrapperState = false;
+        spyOn(testing, 'createChecklistCategories').and.stub();
 
+        testing.triggerNewChecklist();
+
+        expect(testing.newChecklistWrapperState).toEqual(true);
+        const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
+        expect(newChecklistWrapperState).toBeNull();
+        expect(testing.createChecklistCategories).toHaveBeenCalled();
+      });
+      it('expects "triggerNewChecklist" to change state and make hidden [FALSE]', () => {
+        testing.newChecklistWrapperState = true;
+
+        testing.triggerNewChecklist();
+
+        expect(testing.newChecklistWrapperState).toEqual(false);
+        const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
+        expect(newChecklistWrapperState).toEqual('hidden');
+      });
       it('expects "triggerSaveChecklist" to attempt checklist creation [EXIST]', async () => {
         spyOn(testing, 'closeNewChecklist').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
