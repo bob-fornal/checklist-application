@@ -397,7 +397,8 @@ describe('Testing Checklist', () => {
 
     describe('[checklist functionality]', () => {
       
-      // testing.triggerCancelNewChecklist
+      // testing.checkboxCategoryChange
+
       it('expects "triggerNewChecklist" to change state and make visible [TRUE]', () => {
         testing.newChecklistWrapperState = false;
         spyOn(testing, 'createChecklistCategories').and.stub();
