@@ -1,4 +1,16 @@
 
+const logging = {
+  state: null,
+  init: (state) => {
+    logging.state = state;
+  },
+  show: (...args) => {
+    if (logging.state.debug === true) {
+      console.log(...args);
+    }
+  }
+};
+
 const state = {
   debug: false,
   displayMode: '',
@@ -132,6 +144,7 @@ const testing = {
   state: null,
   store: null,
   html: null,
+  logging: null,
 
   body: null,
 
@@ -158,17 +171,13 @@ const testing = {
   altBackground: null,
   foreground: null,
 
-  init: async (state, store, html) => {
+  init: async (state, store, html, logging) => {
     testing.state = state;
     testing.store = store;
     testing.html = html;
+    testing.logging = logging;
 
     testing.body = document.getElementById('body');
-
-    testing.state.debug && console.log('display-mode', { displayMode: testing.state.displayMode }); // jshint ignore:line
-    if (testing.state.displayMode === 'customMode') {
-      testing.body.classList.add('dark-mode');
-    }
 
     testing.checklistName = document.getElementById('checklist-name');
     testing.newCategories = document.getElementById('new-categories');
@@ -191,9 +200,14 @@ const testing = {
     testing.getStoredElements(testing.checklists);
 
     testing.structure = await testing.store.getStructure();
-    testing.state.debug && console.log('structure', { "testing.structure": testing.structure }); // jshint ignore:line
+
+    testing.logging.show('testing.init', {
+      displayMode: testing.state.displayMode,
+      "testing.structure": testing.structure
+    });
 
     if (testing.state.displayMode === 'customMode') {
+      testing.body.classList.add('dark-mode');
       testing.setCustomColors();      
     }
   },
@@ -203,7 +217,7 @@ const testing = {
 
     attach.innerHTML = "";
 
-    testing.state.debug && console.log('getStoredElements', { checklists }); // jshint ignore:line
+    testing.logging.show('getStoredElements', { checklists });
     for(let list of checklists) {
       attach.appendChild(testing.buildChecklistElement(list));
     }
@@ -344,7 +358,7 @@ const testing = {
   },
 
   triggerDelete: async (name) => {
-    testing.state.debug && console.log('triggerDelete', { name }); // jshint ignore:line
+    testing.logging.show('triggerDelete', { name });
 
     let stored = await testing.store.get(testing.store.storedKey) || [];
     stored.splice(stored.indexOf(name), 1);
@@ -370,7 +384,7 @@ const testing = {
     input.classList.add('hidden');
   },
   triggerEdit: (name) => {
-    testing.state.debug && console.log('triggerEdit', { name }); // jshint ignore:line
+    testing.logging.show('triggerEdit', { name });
 
     const active = document.getElementById(`checklist-${ name }`);
     active.classList.add('editing');
@@ -389,7 +403,7 @@ const testing = {
     input.select();
   },
   triggerEditSave: async (name) => {
-    testing.state.debug && console.log('triggerEditSave', { name }); // jshint ignore:line
+    testing.logging.show('triggerEditSave', { name });
 
     const input = document.getElementById(`edit-${ name }`);
     const newName = input.value;
@@ -412,7 +426,7 @@ const testing = {
     }
 
     const state = await testing.store.get(name);
-    testing.state.debug && console.log('triggerEditSave', { state }); // jshint ignore:line
+    testing.logging.show('triggerEditSave', { state });
 
     await testing.store.set(testing.store.storedKey, stored);
     await testing.store.remove(name);
@@ -421,7 +435,7 @@ const testing = {
     testing.getStoredElements(testing.checklists);
   },
   triggerEditCancel: (name) => {
-    testing.state.debug && console.log('triggerEditCancel', { name }); // jshint ignore:line
+    testing.logging.show('triggerEditCancel', { name });
     
     const input = document.getElementById(`edit-${ name }`);
     input.value = name;
@@ -430,7 +444,7 @@ const testing = {
   },
 
   buildChecklistState: (state) => {
-    testing.state.debug && console.log('buildChecklistState', { state }); // jshint ignore:line
+    testing.logging.show('buildChecklistState', { state });
 
     let content = '';
     const categoryTitle = `<h3 class="category-title">${ state.title }</h3>`;
@@ -481,7 +495,7 @@ ${ categoryContent }
 
   triggerChecklistView: async (name) => {
     const state = await testing.store.get(name);
-    testing.state.debug && console.log('triggerChecklistView', { name, state }); // jshint ignore:line
+    testing.logging.show('triggerChecklistView', { name, state });
 
     state.name = name;
     await testing.triggerCopyItem.setAttribute('onclick', `testing.triggerCopy('${ name }')`);
@@ -495,7 +509,7 @@ ${ categoryContent }
   },
   triggerCopy: async (name, forTest = false) => {
     const state = await testing.store.get(name);
-    testing.state.debug && console.log('triggerCopy', { state }); // jshint ignore:line
+    testing.logging.show('triggerCopy', { state });
 
     state.name = name;
     const copy = testing.buildChecklistCopy(state);
@@ -518,7 +532,7 @@ ${ categoryContent }
     }
   },
   closeChecklist: () => {
-    testing.state.debug && console.log('closeChecklist'); // jshint ignore:line
+    testing.logging.show('closeChecklist');
 
     testing.newChecklistItem.classList.remove('hidden');
     testing.copyChecklistItem.classList.add('hidden');
@@ -528,7 +542,7 @@ ${ categoryContent }
   },
 
   checkboxStateChange: async (name, index, event) => {
-    testing.state.debug && console.log('checkboxStateChange', { name, index }); // jshint ignore:line
+    testing.logging.show('checkboxStateChange', { name, index });
 
     const checkedState = event.target.checked;
     const state = await testing.store.get(name);
@@ -598,14 +612,14 @@ ${ categoryContent }
   },
 
   disableCustomColorModeStates: (state) => {
-    testing.state.debug && console.log('disableCustomColorModeStates', { state }); // jshint ignore:line
+    testing.logging.show('disableCustomColorModeStates', { state });
 
     if (state === true) {
       testing.background.disabled = state;
       testing.altBackground.disabled = state;
       testing.foreground.disabled = state;  
     } else {
-      testing.state.debug && console.log('... removing attribute disabled'); // jshint ignore:line
+      testing.logging.show('... removing attribute disabled');
       testing.background.removeAttribute('disabled');
       testing.altBackground.removeAttribute('disabled');
       testing.foreground.removeAttribute('disabled');
@@ -623,7 +637,7 @@ ${ categoryContent }
       testing.state.colors = testing.state.colorCustomStart;
       await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
       testing.setCustomColors();
-      testing.state.debug && console.log('changeCustomMode on ...'); // jshint ignore:line
+      testing.logging.show('changeCustomMode on ...');
     } else {
       testing.body.classList.remove('dark-mode');
       testing.state.colors = testing.state.colorDefault;
@@ -643,7 +657,6 @@ ${ categoryContent }
     let debug = testing.state.debug;
     const displayMode = testing.state.displayMode;
     const state = await testing.store.get(testing.store.stateKey);
-    console.log('testing', { state });
 
     debug = !debug;
     testing.state.debug = debug;
@@ -665,7 +678,7 @@ ${ categoryContent }
     testing.state.colors = {
       backgroundColor, altBackgroundColor, foregroundColor
     };
-    testing.state.debug && console.log('change individual color ...', { colors: testing.state.colors }); // jshint ignore:line
+    testing.logging.show('change individual color ...', { colors: testing.state.colors });
     testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
     testing.setCustomColors();
   },
@@ -675,7 +688,7 @@ ${ categoryContent }
   },
   setCustomColors: () => {
     const logoColor = testing.state.calculateLogoColor(testing.state.colors.backgroundColor);
-    testing.state.debug && console.log('setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor }); // jshint ignore:line
+    testing.logging.show('setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor });
 
     testing.body.setAttribute('style', `
       --background-color: ${ testing.state.colors.backgroundColor };

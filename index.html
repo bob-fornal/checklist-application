@@ -67,8 +67,9 @@
     async function init() {
       await store.init(window.localStorage);
       await state.init(store);
+      await logging.init(state);
       await html.init();
-      await testing.init(state, store, html);
+      await testing.init(state, store, html, logging);
     }
     init();
   </script>

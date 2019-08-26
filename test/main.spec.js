@@ -68,6 +68,38 @@ describe('Testing Checklist', () => {
     jasmine.clock().uninstall();
   });
 
+  describe('"logging" object', () => {
+    beforeEach(() => {
+      logging.state = null;
+    });
+
+    it('expects constant initialization', () => {
+      expect(logging.state).toBeNull();
+    });
+
+    it('expects functions', () => {
+      expect(logging.init).toEqual(jasmine.any(Function));
+      expect(logging.show).toEqual(jasmine.any(Function));
+    });
+
+    it('expects "show" to not console.log [state.debug=FALSE]', () => {
+      logging.init({ debug: false });
+      spyOn(console, 'log').and.stub();
+
+      logging.show('test');
+
+      expect(console.log).not.toHaveBeenCalled();
+    });
+    it('expects "show" to console.log [state.debug=TRUE]', () => {
+      logging.init({ debug: true });
+      spyOn(console, 'log').and.stub();
+
+      logging.show('test');
+
+      expect(console.log).toHaveBeenCalled();
+    });
+  });
+
   describe('"state" object', () => {
     beforeEach(() => {
       state.debug = oldState.debug;
@@ -327,7 +359,8 @@ describe('Testing Checklist', () => {
       await store.init(mockLocalStorage);
       await state.init(store);
       await html.init();
-      await testing.init(state, store, html);
+      await logging.init(state);
+      await testing.init(state, store, html, logging);
     });
 
     afterEach(() => {
@@ -393,6 +426,49 @@ describe('Testing Checklist', () => {
 
       expect(testing.removeCustomColors).toEqual(jasmine.any(Function));
       expect(testing.setCustomColors).toEqual(jasmine.any(Function));
+    });
+
+    describe('[init function]', () => {
+      it('expects "init" to handle displayMode [""]', async () => {
+        mockState.storage['~~key~~'] = {
+          debug: false,
+          displayMode: '',
+          colors: {
+            backgroundColor: '#111111',
+            foregroundColor: '#eeeeee',
+            altBackgroundColor: '#2f4f4f'
+          }
+        };
+        mockState.displayMode = '';  
+        await state.init(mockState);
+        spyOn(testing, 'setCustomColors').and.stub();
+  
+        await testing.init(state, store, html, logging);
+
+        const bodyState = testing.body.getAttribute('class');
+        expect(bodyState).toBeNull();
+        expect(testing.setCustomColors).not.toHaveBeenCalled();
+      });
+      it('expects "init" to handle displayMode ["customMode"]', async () => {
+        mockState.storage['~~key~~'] = {
+          debug: false,
+          displayMode: 'customMode',
+          colors: {
+            backgroundColor: '#111111',
+            foregroundColor: '#eeeeee',
+            altBackgroundColor: '#2f4f4f'
+          }
+        };
+        mockState.displayMode = 'customMode';  
+        await state.init(mockState);
+        spyOn(testing, 'setCustomColors').and.stub();
+  
+        await testing.init(state, store, html, logging);
+        
+        const bodyState = testing.body.getAttribute('class');
+        expect(bodyState).toEqual('dark-mode');
+        expect(testing.setCustomColors).toHaveBeenCalled();
+      });
     });
 
     it('expects "getStoredElements" to attach checklist elements to passed in DOM element', async () => {
@@ -548,6 +624,43 @@ describe('Testing Checklist', () => {
         const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
         expect(newChecklistWrapperState).toEqual('hidden');
       });
+      it('expects "triggerCancelNewChecklist" to fire closeNewChecklist', () => {
+        spyOn(testing, 'closeNewChecklist').and.stub();
+
+        testing.triggerCancelNewChecklist();
+
+        expect(testing.closeNewChecklist).toHaveBeenCalled();
+      });
+      it('expects "triggerSaveChecklist" to fail out [name=""]', async () => {
+        spyOn(testing, 'closeNewChecklist').and.stub();
+        spyOn(testing, 'getStoredElements').and.stub();
+        testing.checklistName.value = '';
+        testing.selectedCategory = {};
+        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+          name: 'test-name'
+        }]);
+
+        await testing.triggerSaveChecklist();
+
+        expect(testing.selectedCategory).not.toBeNull();
+        expect(testing.closeNewChecklist).not.toHaveBeenCalled();
+        expect(testing.getStoredElements).not.toHaveBeenCalled();
+      });
+      it('expects "triggerSaveChecklist" to fail out [selectedCategory=NULL]', async () => {
+        spyOn(testing, 'closeNewChecklist').and.stub();
+        spyOn(testing, 'getStoredElements').and.stub();
+        testing.checklistName.value = 'test-name';
+        testing.selectedCategory = null;
+        mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+          name: 'test-name'
+        }]);
+
+        await testing.triggerSaveChecklist();
+
+        expect(testing.selectedCategory).toBeNull();
+        expect(testing.closeNewChecklist).not.toHaveBeenCalled();
+        expect(testing.getStoredElements).not.toHaveBeenCalled();
+      });
       it('expects "triggerSaveChecklist" to attempt checklist creation [EXIST]', async () => {
         spyOn(testing, 'closeNewChecklist').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
@@ -687,8 +800,11 @@ describe('Testing Checklist', () => {
         mockLocalStorage.storage.name = JSON.stringify({
           title: "test",
           questions: [{
-            title: "QN 1",
+            title: "Question 1",
             checked: false
+          }, {
+            title: "Question 2",
+            checked: true
           }]
         });
 
@@ -697,7 +813,7 @@ describe('Testing Checklist', () => {
         const onclickState = testing.triggerCopyItem.getAttribute('onclick');
         expect(onclickState).toEqual('testing.triggerCopy(\'name\')');
         const displayedChecklist = testing.displayedChecklist.innerHTML.replace(/\s/gm, '');
-        expect(displayedChecklist).toEqual('<h2class="section-title">name</h2><h3class="category-title">test</h3><labelclass="checkbox-label"><inputtype="checkbox"id="question-0"name="question-0"onchange="testing.checkboxStateChange(\'name\',\'0\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">QN1</span></label>');
+        expect(displayedChecklist).toEqual('<h2class="section-title">name</h2><h3class="category-title">test</h3><labelclass="checkbox-label"><inputtype="checkbox"id="question-0"name="question-0"onchange="testing.checkboxStateChange(\'name\',\'0\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Question1</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="question-1"name="question-1"checked=""onchange="testing.checkboxStateChange(\'name\',\'1\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Question2</span></label>');
         const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
         const copyChecklistItemState = testing.copyChecklistItem.getAttribute('class');
         const checklistsState = testing.checklists.getAttribute('class');
