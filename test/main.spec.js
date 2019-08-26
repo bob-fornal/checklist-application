@@ -395,10 +395,139 @@ describe('Testing Checklist', () => {
       expect(testing.setCustomColors).toEqual(jasmine.any(Function));
     });
 
-    describe('[checklist functionality]', () => {
-      
-      // testing.checkboxCategoryChange
+    it('expects "getStoredElements" to attach checklist elements to passed in DOM element', async () => {
+      const element = document.createElement('div');
+      mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
+        name: 'test-name',
+        title: 'test-title'
+      }]);
 
+      await testing.getStoredElements(element);
+
+      const elementState = element.innerHTML.replace(/\s/gm, '');
+      expect(elementState).toEqual('<divid="checklist-test-name"class="active-checklist"><aid="title-test-name"class="checklist-title"href="#"onclick="testing.triggerChecklistView(\'test-name\')"><divclass="active-title">test-name</div><divclass="active-category">test-title</div></a><inputid="edit-test-name"class="input-textedit-checklist-namehidden"value="test-name"onkeypress="returntesting.handleNamedKeypress(\'test-name\',event)"><spanid="actions-save-test-name"class="checklist-actioneditinghidden"><ahref="#"onclick="testing.triggerEditSave(\'test-name\')"><imgsrc="images/checked.svg"></a><ahref="#"onclick="testing.triggerEditCancel(\'test-name\')"><imgsrc="images/error.svg"></a></span><spanid="actions-test-name"class="checklist-action"><ahref="#"onclick="testing.triggerEdit(\'test-name\')"><imgsrc="images/edit.svg"></a><ahref="#"onclick="testing.triggerDelete(\'test-name\')"><imgsrc="images/trash.svg"></a></span></div>');
+    });
+
+    describe('[handle keypress functionality', () => {
+      it('expects "handleKeypress" to not triggerSaveChecklist [type!=checklist-name and keycode!=13]', () => {
+        spyOn(testing, 'triggerSaveChecklist').and.stub();
+
+        const result = testing.handleKeypress('not-checklist-name', { keyCode: 14 });
+
+        expect(result).toEqual(true);
+        expect(testing.triggerSaveChecklist).not.toHaveBeenCalled();
+      });
+      it('expects "handleKeypress" to not triggerSaveChecklist [type=checklist-name and keycode!=13]', () => {
+        spyOn(testing, 'triggerSaveChecklist').and.stub();
+
+        const result = testing.handleKeypress('checklist-name', { keyCode: 14 });
+
+        expect(result).toEqual(true);
+        expect(testing.triggerSaveChecklist).not.toHaveBeenCalled();
+      });
+      it('expects "handleKeypress" to not triggerSaveChecklist [type!=checklist-name and keycode=13]', () => {
+        spyOn(testing, 'triggerSaveChecklist').and.stub();
+
+        const result = testing.handleKeypress('not-checklist-name', { keyCode: 13 });
+
+        expect(result).toEqual(true);
+        expect(testing.triggerSaveChecklist).not.toHaveBeenCalled();
+      });
+      it('expects "handleKeypress" to triggerSaveChecklist [type=checklist-name and keycode=13]', () => {
+        spyOn(testing, 'triggerSaveChecklist').and.stub();
+
+        const result = testing.handleKeypress('checklist-name', { keyCode: 13 });
+
+        expect(result).toEqual(false);
+        expect(testing.triggerSaveChecklist).toHaveBeenCalled();
+      });
+
+      it('expects "handleNamedKeypress" to return true on keyCode not 13', () => {
+        spyOn(testing, 'triggerEditSave').and.stub();
+
+        const result = testing.handleNamedKeypress('test', { keyCode: 14 });
+
+        expect(result).toEqual(true);
+        expect(testing.triggerEditSave).not.toHaveBeenCalledWith('test');
+      });
+      it('expects "handleNamedKeypress" to triggerExitSave with name on keyCode 13', () => {
+        spyOn(testing, 'triggerEditSave').and.stub();
+
+        const result = testing.handleNamedKeypress('test', { keyCode: 13 });
+
+        expect(result).toEqual(false);
+        expect(testing.triggerEditSave).toHaveBeenCalledWith('test');
+      });
+    });
+
+    describe('[checklist functionality]', () => {
+      it('expects "closeNewChecklist" to set wrapper state and hidden appropriately', () => {
+        testing.checklistName.value = 'testing';
+        testing.newChecklistWrapperState = true;
+        testing.newChecklistWrapper.classList.remove('hidden');
+
+        testing.closeNewChecklist();
+
+        expect(testing.checklistName.value).toEqual('');
+        expect(testing.newChecklistWrapperState).toEqual(false);
+        const classes = testing.newChecklistWrapper.getAttribute('class');
+        expect(classes).toEqual('hidden');
+      });
+      it('expects "createChecklistCategories" to create a checklist and update testing.newCategories', () => {
+        testing.structure = {
+          categories: [
+            { title: 'first' },
+            { title: 'second' },
+            { title: 'third' }
+          ]
+        };
+        
+        testing.createChecklistCategories();
+
+        expect(testing.selectedCategory).toEqual({ title: 'first' });
+        const newCategoriesState = testing.newCategories.innerHTML.replace(/\s/gm, '');
+        expect(newCategoriesState).toEqual('<labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="first"id="select-0"name="select-first"checked=""onchange="testing.checkboxCategoryChange(\'first\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">first</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="second"id="select-1"name="select-second"onchange="testing.checkboxCategoryChange(\'second\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">second</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="third"id="select-2"name="select-third"onchange="testing.checkboxCategoryChange(\'third\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">third</span></label>');
+      });
+      it('expects "checkboxCategoryChange" to set the correct category', () => {
+        let element1, element2, element3;
+        testing.structure = {
+          categories: [
+            { title: 'title1' },
+            { title: 'title2' },
+            { title: 'title3' }
+          ]
+        };
+        document.getElementsByClassName = jasmine.createSpy('HTML Element').and.callFake((key) => {
+          if (key === 'all-categories') {
+            element1 = document.createElement('input');
+            element1.setAttribute('type', 'checkbox');
+            element1.setAttribute('data-title', 'title1');
+            element1.removeAttribute('checked');
+
+            element2 = document.createElement('input');
+            element2.setAttribute('type', 'checkbox');
+            element2.setAttribute('data-title', 'title2');
+            element2.removeAttribute('checked');
+
+            element3 = document.createElement('input');
+            element3.setAttribute('type', 'checkbox');
+            element3.setAttribute('data-title', 'title3');
+            element3.removeAttribute('checked');
+
+            const elements = [element1, element2, element3];
+            return elements;
+          } else {
+            console.log('mocking ... getElementsByClassName', { key });
+          }
+        });
+
+        testing.checkboxCategoryChange('title2');
+
+        expect(element1.checked).toEqual(false);
+        expect(element2.checked).toEqual(true);
+        expect(element3.checked).toEqual(false);
+        expect(testing.selectedCategory).toEqual({ title: 'title2' });
+      });
       it('expects "triggerNewChecklist" to change state and make visible [TRUE]', () => {
         testing.newChecklistWrapperState = false;
         spyOn(testing, 'createChecklistCategories').and.stub();

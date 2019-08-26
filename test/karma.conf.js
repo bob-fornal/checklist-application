@@ -14,10 +14,15 @@ module.exports = function(config) {
     ],
     exclude: [],
     // preprocess matching files before serving them to the browser
-    preprocessors: {},
+    preprocessors: {
+      './../js/**/*.js': 'coverage'
+    },
     // test results reporter to use
     // available reporters: https://npmjs.org/browse/keyword/karma-reporter
-    reporters: ['progress'],
+    reporters: ['progress', 'coverage'],
+    coverageReporter: {
+      type: 'html', dir: '../coverage/'
+    },
     // web server port
     port: 9876,
     // enable / disable colors in the output (reporters and logs)

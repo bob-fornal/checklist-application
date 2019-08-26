@@ -204,8 +204,8 @@ const testing = {
     attach.innerHTML = "";
 
     testing.state.debug && console.log('getStoredElements', { checklists }); // jshint ignore:line
-    for(let name of checklists) {
-      attach.appendChild(testing.buildChecklistElement(name));
+    for(let list of checklists) {
+      attach.appendChild(testing.buildChecklistElement(list));
     }
   },
 
