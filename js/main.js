@@ -125,6 +125,10 @@ const store = {
     await store.storage.removeItem(key);
   },
 
+  getStoredKey: async () => {
+    return await store.get(store.storedKey) || [];
+  },
+
   getStructure: async () => {
     return fetch('./testing.json').then(res => res.json());
   }
@@ -213,7 +217,7 @@ const testing = {
   },
 
   getStoredElements: async (attach) => {
-    const checklists = await testing.store.get(testing.store.storedKey) || [];
+    const checklists = await testing.store.getStoredKey();
 
     attach.innerHTML = "";
 
@@ -335,7 +339,7 @@ const testing = {
       return;
     }
 
-    let stored = await testing.store.get(testing.store.storedKey) || [];
+    let stored = await testing.store.getStoredKey();
     let exists = false;
     stored.forEach((item) => {
       if (item.name === name) {
@@ -360,7 +364,7 @@ const testing = {
   triggerDelete: async (name) => {
     testing.logging.show('triggerDelete', { name });
 
-    let stored = await testing.store.get(testing.store.storedKey) || [];
+    let stored = await testing.store.getStoredKey();
     stored.splice(stored.indexOf(name), 1);
 
     await testing.store.set(testing.store.storedKey, stored);
@@ -410,7 +414,7 @@ const testing = {
 
     testing.closeEdit(name);
 
-    let stored = await testing.store.get(testing.store.storedKey) || [];
+    let stored = await testing.store.getStoredKey();
     let index = -1;
     for (let i = 0, len = stored.length; i < len; i++) {
       if (stored[i].name === name) {
