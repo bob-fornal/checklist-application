@@ -150,30 +150,32 @@ const testing = {
   html: null,
   logging: null,
 
-  body: null,
+  elements: {
+    body: null,
 
-  checklistName: null,
-  newCategories: null,
-  checklists: null,
-  settingsList: null,
-
-  newChecklistItem: null,
-  copyChecklistItem: null,
-  settingsItem: null,
-  messageItem: null,
-
-  newChecklistWrapper: null,
-  newChecklistWrapperState: false,
+    checklistName: null,
+    newCategories: null,
+    checklists: null,
+    settingsList: null,
+  
+    newChecklistItem: null,
+    copyChecklistItem: null,
+    settingsItem: null,
+    messageItem: null,
+  
+    newChecklistWrapper: null,
+  
+    displayedChecklist: null,
+  
+    triggerCopyItem: null,
+    copyAreaItem: null,
+  
+    background: null,
+    altBackground: null,
+    foreground: null  
+  },
 
   structure: null,
-  displayedChecklist: null,
-
-  triggerCopyItem: null,
-  copyAreaItem: null,
-
-  background: null,
-  altBackground: null,
-  foreground: null,
 
   init: async (state, store, html, logging) => {
     testing.state = state;
@@ -181,25 +183,26 @@ const testing = {
     testing.html = html;
     testing.logging = logging;
 
-    testing.body = document.getElementById('body');
+    let elements = testing.elements;
+    elements.body = document.getElementById('body');
 
-    testing.checklistName = document.getElementById('checklist-name');
-    testing.newCategories = document.getElementById('new-categories');
-    testing.checklists = document.getElementById('checklists');
-    testing.settingsList = document.getElementById('settings');
+    elements.checklistName = document.getElementById('checklist-name');
+    elements.newCategories = document.getElementById('new-categories');
+    elements.checklists = document.getElementById('checklists');
+    elements.settingsList = document.getElementById('settings');
 
-    testing.newChecklistItem = document.getElementById('nav-new-checklist-item');
-    testing.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
-    testing.settingsItem = document.getElementById('nav-settings-item');
-    testing.messageItem = document.getElementById('message');
+    elements.newChecklistItem = document.getElementById('nav-new-checklist-item');
+    elements.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
+    elements.settingsItem = document.getElementById('nav-settings-item');
+    elements.messageItem = document.getElementById('message');
 
-    testing.newChecklistWrapper = document.getElementById('new-checklist-wrapper');
-    testing.newChecklistWrapperState = false;
+    elements.newChecklistWrapper = document.getElementById('new-checklist-wrapper');
+    testing.newChecklist.state = false;
 
-    testing.displayedChecklist = document.getElementById('displayed-checklist');
+    elements.displayedChecklist = document.getElementById('displayed-checklist');
 
-    testing.triggerCopyItem = document.getElementById('trigger-copy');
-    testing.copyAreaItem = document.getElementById('copy-area');
+    elements.triggerCopyItem = document.getElementById('trigger-copy');
+    elements.copyAreaItem = document.getElementById('copy-area');
 
     testing.getStoredElements(testing.checklists);
 
@@ -211,7 +214,7 @@ const testing = {
     });
 
     if (testing.state.displayMode === 'customMode') {
-      testing.body.classList.add('dark-mode');
+      elements.body.classList.add('dark-mode');
       testing.settings.setCustomColors();      
     }
   },
@@ -279,25 +282,26 @@ const testing = {
   },  
 
   newChecklist: {
+    state: null,
     selectedCategory: null,
     trigger: () => {
-      testing.newChecklistWrapperState = !testing.newChecklistWrapperState;
-      if (testing.newChecklistWrapperState === true) {
+      testing.newChecklist.state = !testing.newChecklist.state;
+      if (testing.newChecklist.state === true) {
         testing.newChecklist.createChecklistCategories();
-        testing.newChecklistWrapper.classList.remove('hidden');
-        testing.checklistName.focus();
+        testing.elements.newChecklistWrapper.classList.remove('hidden');
+        testing.elements.checklistName.focus();
       } else {
-        testing.newChecklistWrapper.classList.add('hidden');
+        testing.elements.newChecklistWrapper.classList.add('hidden');
       }
     },
   
     close: () => {
-      testing.checklistName.value = '';
-      testing.newChecklistWrapperState = false;
-      testing.newChecklistWrapper.classList.add('hidden');  
+      testing.elements.checklistName.value = '';
+      testing.newChecklist.state = false;
+      testing.elements.newChecklistWrapper.classList.add('hidden');  
     },
     save: async () => {
-      const name = testing.checklistName.value;
+      const name = testing.elements.checklistName.value;
       const category = testing.newChecklist.selectedCategory;
   
       if (name.length === 0 || category === null) {
@@ -344,8 +348,8 @@ const testing = {
       });
   
       let wrapper = testing.html.fragmentFromString(categoryElements);
-      testing.newCategories.innerHTML = "";
-      testing.newCategories.appendChild(wrapper);
+      testing.elements.newCategories.innerHTML = "";
+      testing.elements.newCategories.appendChild(wrapper);
     },
     checkboxCategoryChange: (categoryTitle) => {
       const categories = document.getElementsByClassName('all-categories');
@@ -480,8 +484,8 @@ const testing = {
       `;
   
       let wrapper = testing.html.fragmentFromString(template);
-      testing.displayedChecklist.innerHTML = "";
-      testing.displayedChecklist.appendChild(wrapper);
+      testing.elements.displayedChecklist.innerHTML = "";
+      testing.elements.displayedChecklist.appendChild(wrapper);
     },
     copy: (state) => {
       const categoryTitle = `### ${ state.title }`;
@@ -508,14 +512,14 @@ const testing = {
       testing.logging.show('checklist.view', { name, state });
   
       state.name = name;
-      await testing.triggerCopyItem.setAttribute('onclick', `testing.checklist.copy('${ name }')`);
+      await testing.elements.triggerCopyItem.setAttribute('onclick', `testing.checklist.copy('${ name }')`);
       testing.buildChecklist.state(state);
   
-      testing.newChecklistItem.classList.add('hidden');
-      testing.copyChecklistItem.classList.remove('hidden');
+      testing.elements.newChecklistItem.classList.add('hidden');
+      testing.elements.copyChecklistItem.classList.remove('hidden');
   
-      testing.checklists.classList.add('hidden');
-      testing.displayedChecklist.classList.remove('hidden');
+      testing.elements.checklists.classList.add('hidden');
+      testing.elements.displayedChecklist.classList.remove('hidden');
     },
     copy: async (name, forTest = false) => {
       const state = await testing.store.get(name);
@@ -523,20 +527,20 @@ const testing = {
   
       state.name = name;
       const copy = testing.buildChecklist.copy(state);
-      testing.copyAreaItem.value = copy;
+      testing.elements.copyAreaItem.value = copy;
       
-      testing.copyAreaItem.select();
+      testing.elements.copyAreaItem.select();
       document.execCommand('copy');
   
-      testing.messageItem.innerHTML = "Copied as Markdown.";
-      testing.messageItem.classList.remove('hidden');
+      testing.elements.messageItem.innerHTML = "Copied as Markdown.";
+      testing.elements.messageItem.classList.remove('hidden');
       
       if (forTest === false) {
         setTimeout(function() {
-          testing.messageItem.classList.add('hide-2s');
+          testing.elements.messageItem.classList.add('hide-2s');
           setTimeout(function() {
-            testing.messageItem.classList.remove('hide-2s');
-            testing.messageItem.classList.add('hidden');
+            testing.elements.messageItem.classList.remove('hide-2s');
+            testing.elements.messageItem.classList.add('hidden');
           }, 2500);
         }, 1000);  
       }
@@ -544,11 +548,11 @@ const testing = {
     close: () => {
       testing.logging.show('checklist.close');
   
-      testing.newChecklistItem.classList.remove('hidden');
-      testing.copyChecklistItem.classList.add('hidden');
+      testing.elements.newChecklistItem.classList.remove('hidden');
+      testing.elements.copyChecklistItem.classList.add('hidden');
   
-      testing.checklists.classList.remove('hidden');
-      testing.displayedChecklist.classList.add('hidden');
+      testing.elements.checklists.classList.remove('hidden');
+      testing.elements.displayedChecklist.classList.add('hidden');
     }  
   },
 
@@ -593,49 +597,49 @@ const testing = {
     `;
     let wrapper = testing.html.fragmentFromString(content);
 
-    testing.settingsList.innerHTML = "";
-    testing.settingsList.appendChild(wrapper);
+    testing.elements.settingsList.innerHTML = "";
+    testing.elements.settingsList.appendChild(wrapper);
   },
 
   settings: {
     trigger: (forTest = false) => {
-      testing.newChecklistItem.classList.add('hidden');
-      testing.newChecklistWrapper.classList.add('hidden');
-      testing.checklists.classList.add('hidden');
+      testing.elements.newChecklistItem.classList.add('hidden');
+      testing.elements.newChecklistWrapper.classList.add('hidden');
+      testing.elements.checklists.classList.add('hidden');
   
-      testing.settingsList.classList.remove('hidden');
-      testing.settingsItem.classList.remove('hidden');
+      testing.elements.settingsList.classList.remove('hidden');
+      testing.elements.settingsItem.classList.remove('hidden');
   
       testing.buildSettingsState();
   
       if (forTest === false) {
         setTimeout(() => {
-          testing.background = document.getElementById('background-color');
-          testing.altBackground = document.getElementById('alt-background-color');
-          testing.foreground = document.getElementById('foreground-color');
+          testing.elements.background = document.getElementById('background-color');
+          testing.elements.altBackground = document.getElementById('alt-background-color');
+          testing.elements.foreground = document.getElementById('foreground-color');
         }, 200);  
       }
     },
     close: () => {
-      testing.newChecklistItem.classList.remove('hidden');
-      testing.checklists.classList.remove('hidden');
+      testing.elements.newChecklistItem.classList.remove('hidden');
+      testing.elements.checklists.classList.remove('hidden');
   
-      testing.settingsList.classList.add('hidden');
-      testing.settingsItem.classList.add('hidden');
+      testing.elements.settingsList.classList.add('hidden');
+      testing.elements.settingsItem.classList.add('hidden');
     },
   
     disableCustomColorModeStates: (state) => {
       testing.logging.show('settings.disableCustomColorModeStates', { state });
   
       if (state === true) {
-        testing.background.disabled = state;
-        testing.altBackground.disabled = state;
-        testing.foreground.disabled = state;  
+        testing.elements.background.disabled = state;
+        testing.elements.altBackground.disabled = state;
+        testing.elements.foreground.disabled = state;  
       } else {
         testing.logging.show('... removing attribute disabled');
-        testing.background.removeAttribute('disabled');
-        testing.altBackground.removeAttribute('disabled');
-        testing.foreground.removeAttribute('disabled');
+        testing.elements.background.removeAttribute('disabled');
+        testing.elements.altBackground.removeAttribute('disabled');
+        testing.elements.foreground.removeAttribute('disabled');
       }
     },
   
@@ -646,13 +650,13 @@ const testing = {
       let displayMode = testing.state.displayMode;
   
       if (displayMode === 'customMode') {
-        testing.body.classList.add('dark-mode');
+        testing.elements.body.classList.add('dark-mode');
         testing.state.colors = testing.state.colorCustomStart;
         await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
         testing.settings.setCustomColors();
         testing.logging.show('settings.changeCustomMode on ...');
       } else {
-        testing.body.classList.remove('dark-mode');
+        testing.elements.body.classList.remove('dark-mode');
         testing.state.colors = testing.state.colorDefault;
         await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
         testing.settings.disableCustomColorModeStates(true);
@@ -667,26 +671,23 @@ const testing = {
       }
     },
     changeDebugMode: async () => {
-      let debug = testing.state.debug;
+      testing.state.debug = !testing.state.debug;
       const displayMode = testing.state.displayMode;
       const state = await testing.store.get(testing.store.stateKey);
   
-      debug = !debug;
-      testing.state.debug = debug;
-  
       if ('colors' in state) {
-        await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: state.colors });
+        await testing.store.set(testing.store.stateKey, { debug: testing.state.debug, displayMode, colors: state.colors });
       } else {
-        await testing.store.set(testing.store.stateKey, { debug, displayMode });
+        await testing.store.set(testing.store.stateKey, { debug: testing.state.debug, displayMode });
       }
     },
     changeIndividualColor: () => {
       const debug = testing.state.debug;
       const displayMode = testing.state.displayMode;
   
-      const backgroundColor = testing.background.value;
-      const altBackgroundColor = testing.altBackground.value;
-      const foregroundColor = testing.foreground.value;
+      const backgroundColor = testing.elements.background.value;
+      const altBackgroundColor = testing.elements.altBackground.value;
+      const foregroundColor = testing.elements.foreground.value;
   
       testing.state.colors = {
         backgroundColor, altBackgroundColor, foregroundColor
@@ -697,13 +698,13 @@ const testing = {
     },
   
     removeCustomColors: () => {
-      testing.body.removeAttribute('style');
+      testing.elements.body.removeAttribute('style');
     },
     setCustomColors: () => {
       const logoColor = testing.state.calculateLogoColor(testing.state.colors.backgroundColor);
       testing.logging.show('settings.setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor });
   
-      testing.body.setAttribute('style', `
+      testing.elements.body.setAttribute('style', `
         --background-color: ${ testing.state.colors.backgroundColor };
         --alt-background-color: ${ testing.state.colors.altBackgroundColor };
         --foreground-color: ${ testing.state.colors.foregroundColor };

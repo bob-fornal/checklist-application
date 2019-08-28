@@ -445,7 +445,7 @@ describe('Testing Checklist', () => {
   
         await testing.init(state, store, html, logging);
 
-        const bodyState = testing.body.getAttribute('class');
+        const bodyState = testing.elements.body.getAttribute('class');
         expect(bodyState).toBeNull();
         expect(testing.settings.setCustomColors).not.toHaveBeenCalled();
       });
@@ -465,7 +465,7 @@ describe('Testing Checklist', () => {
   
         await testing.init(state, store, html, logging);
         
-        const bodyState = testing.body.getAttribute('class');
+        const bodyState = testing.elements.body.getAttribute('class');
         expect(bodyState).toEqual('dark-mode');
         expect(testing.settings.setCustomColors).toHaveBeenCalled();
       });
@@ -538,15 +538,15 @@ describe('Testing Checklist', () => {
 
     describe('[checklist functionality]', () => {
       it('expects "newChecklist.close" to set wrapper state and hidden appropriately', () => {
-        testing.checklistName.value = 'testing';
-        testing.newChecklistWrapperState = true;
-        testing.newChecklistWrapper.classList.remove('hidden');
+        testing.elements.checklistName.value = 'testing';
+        testing.newChecklist.state = true;
+        testing.elements.newChecklistWrapper.classList.remove('hidden');
 
         testing.newChecklist.close();
 
-        expect(testing.checklistName.value).toEqual('');
-        expect(testing.newChecklistWrapperState).toEqual(false);
-        const classes = testing.newChecklistWrapper.getAttribute('class');
+        expect(testing.elements.checklistName.value).toEqual('');
+        expect(testing.newChecklist.state).toEqual(false);
+        const classes = testing.elements.newChecklistWrapper.getAttribute('class');
         expect(classes).toEqual('hidden');
       });
       it('expects "newChecklist.createChecklistCategories" to create a checklist and update testing.newCategories', () => {
@@ -561,7 +561,7 @@ describe('Testing Checklist', () => {
         testing.newChecklist.createChecklistCategories();
 
         expect(testing.newChecklist.selectedCategory).toEqual({ title: 'first' });
-        const newCategoriesState = testing.newCategories.innerHTML.replace(/\s/gm, '');
+        const newCategoriesState = testing.elements.newCategories.innerHTML.replace(/\s/gm, '');
         expect(newCategoriesState).toEqual('<labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="first"id="select-0"name="select-first"checked=""onchange="testing.newChecklist.checkboxCategoryChange(\'first\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">first</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="second"id="select-1"name="select-second"onchange="testing.newChecklist.checkboxCategoryChange(\'second\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">second</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="third"id="select-2"name="select-third"onchange="testing.newChecklist.checkboxCategoryChange(\'third\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">third</span></label>');
       });
       it('expects "newChecklist.checkboxCategoryChange" to set the correct category', () => {
@@ -605,29 +605,29 @@ describe('Testing Checklist', () => {
         expect(testing.newChecklist.selectedCategory).toEqual({ title: 'title2' });
       });
       it('expects "newChecklist.trigger" to change state and make visible [TRUE]', () => {
-        testing.newChecklistWrapperState = false;
+        testing.newChecklist.state = false;
         spyOn(testing.newChecklist, 'createChecklistCategories').and.stub();
 
         testing.newChecklist.trigger();
 
-        expect(testing.newChecklistWrapperState).toEqual(true);
-        const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
+        expect(testing.newChecklist.state).toEqual(true);
+        const newChecklistWrapperState = testing.elements.newChecklistWrapper.getAttribute('class');
         expect(newChecklistWrapperState).toBeNull();
         expect(testing.newChecklist.createChecklistCategories).toHaveBeenCalled();
       });
       it('expects "newChecklist.trigger" to change state and make hidden [FALSE]', () => {
-        testing.newChecklistWrapperState = true;
+        testing.newChecklist.state = true;
 
         testing.newChecklist.trigger();
 
-        expect(testing.newChecklistWrapperState).toEqual(false);
-        const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
+        expect(testing.newChecklist.state).toEqual(false);
+        const newChecklistWrapperState = testing.elements.newChecklistWrapper.getAttribute('class');
         expect(newChecklistWrapperState).toEqual('hidden');
       });
       it('expects "newChecklist.save" to fail out [name=""]', async () => {
         spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
-        testing.checklistName.value = '';
+        testing.elements.checklistName.value = '';
         testing.newChecklist.selectedCategory = {};
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-name'
@@ -642,7 +642,7 @@ describe('Testing Checklist', () => {
       it('expects "newChecklist.save" to fail out [selectedCategory=NULL]', async () => {
         spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
-        testing.checklistName.value = 'test-name';
+        testing.elements.checklistName.value = 'test-name';
         testing.newChecklist.selectedCategory = null;
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-name'
@@ -657,7 +657,7 @@ describe('Testing Checklist', () => {
       it('expects "newChecklist.save" to attempt checklist creation [EXIST]', async () => {
         spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
-        testing.checklistName.value = 'test-name';
+        testing.elements.checklistName.value = 'test-name';
         testing.newChecklist.selectedCategory = {};
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-name'
@@ -672,7 +672,7 @@ describe('Testing Checklist', () => {
       it('expects "newChecklist.save" to attempt checklist creation [NOT EXIST]', async () => {
         spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
-        testing.checklistName.value = 'test-name';
+        testing.elements.checklistName.value = 'test-name';
         testing.newChecklist.selectedCategory = { data: 'mock-data' };
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-not-name'
@@ -803,14 +803,14 @@ describe('Testing Checklist', () => {
 
         await testing.checklist.view('name');
 
-        const onclickState = testing.triggerCopyItem.getAttribute('onclick');
+        const onclickState = testing.elements.triggerCopyItem.getAttribute('onclick');
         expect(onclickState).toEqual('testing.checklist.copy(\'name\')');
-        const displayedChecklist = testing.displayedChecklist.innerHTML.replace(/\s/gm, '');
+        const displayedChecklist = testing.elements.displayedChecklist.innerHTML.replace(/\s/gm, '');
         expect(displayedChecklist).toEqual('<h2class="section-title">name</h2><h3class="category-title">test</h3><labelclass="checkbox-label"><inputtype="checkbox"id="question-0"name="question-0"onchange="testing.checkboxStateChange(\'name\',\'0\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Question1</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="question-1"name="question-1"checked=""onchange="testing.checkboxStateChange(\'name\',\'1\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Question2</span></label>');
-        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
-        const copyChecklistItemState = testing.copyChecklistItem.getAttribute('class');
-        const checklistsState = testing.checklists.getAttribute('class');
-        const displayedChecklistState = testing.displayedChecklist.getAttribute('class');
+        const newChecklistItemState = testing.elements.newChecklistItem.getAttribute('class');
+        const copyChecklistItemState = testing.elements.copyChecklistItem.getAttribute('class');
+        const checklistsState = testing.elements.checklists.getAttribute('class');
+        const displayedChecklistState = testing.elements.displayedChecklist.getAttribute('class');
         expect(newChecklistItemState).toEqual('hidden');
         expect(copyChecklistItemState).toBeNull();
         expect(checklistsState).toEqual('hidden');
@@ -830,16 +830,16 @@ describe('Testing Checklist', () => {
 
         await testing.checklist.copy('name', true);
 
-        const copycontent = testing.copyAreaItem.value.replace(/\s/gm, '');
+        const copycontent = testing.elements.copyAreaItem.value.replace(/\s/gm, '');
         expect(copycontent).toEqual('##name###test[x]Question1[]Question2');
       });
       it('expects "checklist.close" to clean up hidden classes', () => {
         testing.checklist.close();
 
-        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
-        const copyChecklistItemState = testing.copyChecklistItem.getAttribute('class');
-        const checklistsState = testing.checklists.getAttribute('class');
-        const displayedChecklistState = testing.displayedChecklist.getAttribute('class');
+        const newChecklistItemState = testing.elements.newChecklistItem.getAttribute('class');
+        const copyChecklistItemState = testing.elements.copyChecklistItem.getAttribute('class');
+        const checklistsState = testing.elements.checklists.getAttribute('class');
+        const displayedChecklistState = testing.elements.displayedChecklist.getAttribute('class');
         expect(newChecklistItemState).toBeNull();
         expect(copyChecklistItemState).toEqual('hidden');
         expect(checklistsState).toBeNull();
@@ -872,7 +872,7 @@ describe('Testing Checklist', () => {
 
         testing.buildSettingsState();
 
-        const innerHTML = testing.settingsList.innerHTML.replace(/\s/gm, '');
+        const innerHTML = testing.elements.settingsList.innerHTML.replace(/\s/gm, '');
         expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
       });
       it('expects "buildSettingsState" to generate settings content [debug=TRUE, displayMode=""]', () => {
@@ -881,20 +881,20 @@ describe('Testing Checklist', () => {
 
         testing.buildSettingsState();
 
-        const innerHTML = testing.settingsList.innerHTML.replace(/\s/gm, '');
+        const innerHTML = testing.elements.settingsList.innerHTML.replace(/\s/gm, '');
         expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"checked=""onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
       });
 
       it('expects "settings.trigger" to set up hidden classes and build state', () => {
         testing.settings.trigger(true);
 
-        const innerHTML = testing.settingsList.innerHTML.replace(/\s/gm, '');
+        const innerHTML = testing.elements.settingsList.innerHTML.replace(/\s/gm, '');
         expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
-        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
-        const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
-        const checklistsState = testing.checklists.getAttribute('class');
-        const settingsState = testing.settingsList.getAttribute('class');
-        const settingsItemState = testing.settingsItem.getAttribute('class');
+        const newChecklistItemState = testing.elements.newChecklistItem.getAttribute('class');
+        const newChecklistWrapperState = testing.elements.newChecklistWrapper.getAttribute('class');
+        const checklistsState = testing.elements.checklists.getAttribute('class');
+        const settingsState = testing.elements.settingsList.getAttribute('class');
+        const settingsItemState = testing.elements.settingsItem.getAttribute('class');
         expect(newChecklistItemState).toEqual('hidden');
         expect(newChecklistWrapperState).toEqual('hidden');
         expect(checklistsState).toEqual('hidden');
@@ -904,10 +904,10 @@ describe('Testing Checklist', () => {
       it('expects "settings.close" to clean up hidden classes', () => {
         testing.settings.close();
 
-        const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
-        const checklistsState = testing.checklists.getAttribute('class');
-        const settingsState = testing.settingsList.getAttribute('class');
-        const settingsItemState = testing.settingsItem.getAttribute('class');
+        const newChecklistItemState = testing.elements.newChecklistItem.getAttribute('class');
+        const checklistsState = testing.elements.checklists.getAttribute('class');
+        const settingsState = testing.elements.settingsList.getAttribute('class');
+        const settingsItemState = testing.elements.settingsItem.getAttribute('class');
         expect(newChecklistItemState).toBeNull();
         expect(checklistsState).toBeNull();
         expect(settingsState).toEqual('hidden');
@@ -916,29 +916,29 @@ describe('Testing Checklist', () => {
     });
 
     it('expects "settings.disableCustomColorModeStates" to change disabled state [TRUE]', () => {
-      testing.background = helpers.createInputElement('color');
-      testing.altBackground = helpers.createInputElement('color');
-      testing.foreground = helpers.createInputElement('color');
+      testing.elements.background = helpers.createInputElement('color');
+      testing.elements.altBackground = helpers.createInputElement('color');
+      testing.elements.foreground = helpers.createInputElement('color');
 
       testing.settings.disableCustomColorModeStates(true);
 
-      const backgroundState = testing.background.getAttribute('disabled');
-      const altBackgroundState = testing.altBackground.getAttribute('disabled');
-      const foregroundState = testing.foreground.getAttribute('disabled');
+      const backgroundState = testing.elements.background.getAttribute('disabled');
+      const altBackgroundState = testing.elements.altBackground.getAttribute('disabled');
+      const foregroundState = testing.elements.foreground.getAttribute('disabled');
       expect(backgroundState).toEqual('');
       expect(altBackgroundState).toEqual('');
       expect(foregroundState).toEqual('');
     });
     it('expects "settings.disableCustomColorModeStates" to change disabled state [FALSE]', () => {
-      testing.background = helpers.createInputElement('color', { disabled: true });
-      testing.altBackground = helpers.createInputElement('color', { disabled: true });
-      testing.foreground = helpers.createInputElement('color', { disabled: true });
+      testing.elements.background = helpers.createInputElement('color', { disabled: true });
+      testing.elements.altBackground = helpers.createInputElement('color', { disabled: true });
+      testing.elements.foreground = helpers.createInputElement('color', { disabled: true });
 
       testing.settings.disableCustomColorModeStates(false);
 
-      const backgroundState = testing.background.getAttribute('disabled');
-      const altBackgroundState = testing.altBackground.getAttribute('disabled');
-      const foregroundState = testing.foreground.getAttribute('disabled');
+      const backgroundState = testing.elements.background.getAttribute('disabled');
+      const altBackgroundState = testing.elements.altBackground.getAttribute('disabled');
+      const foregroundState = testing.elements.foreground.getAttribute('disabled');
       expect(backgroundState).toBeNull();
       expect(altBackgroundState).toBeNull();
       expect(foregroundState).toBeNull();
@@ -947,15 +947,15 @@ describe('Testing Checklist', () => {
     describe('[configure modes]', () => {
       it('expects "settings.changeCustomMode" to toggle custom mode [ON]', async () => {
         testing.state.displayMode = '';
-        testing.background = helpers.createInputElement('color', { disabled: true });
-        testing.altBackground = helpers.createInputElement('color', { disabled: true });
-        testing.foreground = helpers.createInputElement('color', { disabled: true });
+        testing.elements.background = helpers.createInputElement('color', { disabled: true });
+        testing.elements.altBackground = helpers.createInputElement('color', { disabled: true });
+        testing.elements.foreground = helpers.createInputElement('color', { disabled: true });
 
         await testing.settings.changeCustomMode();
         jasmine.clock().tick(210);
 
         expect(testing.state.displayMode).toEqual('customMode');
-        const bodyClasses = testing.body.getAttribute('class');
+        const bodyClasses = testing.elements.body.getAttribute('class');
         expect(bodyClasses).toEqual('dark-mode');
         expect(testing.state.colors).toEqual({
           backgroundColor: '#111111',
@@ -975,15 +975,15 @@ describe('Testing Checklist', () => {
       });
       it('expects "settings.changeCustomMode" to toggle custom mode [OFF]', async () => {
         testing.state.displayMode = 'customMode';
-        testing.background = helpers.createInputElement('color', { disabled: true });
-        testing.altBackground = helpers.createInputElement('color', { disabled: true });
-        testing.foreground = helpers.createInputElement('color', { disabled: true });
+        testing.elements.background = helpers.createInputElement('color', { disabled: true });
+        testing.elements.altBackground = helpers.createInputElement('color', { disabled: true });
+        testing.elements.foreground = helpers.createInputElement('color', { disabled: true });
 
         await testing.settings.changeCustomMode();
         jasmine.clock().tick(210);
 
         expect(testing.state.displayMode).toEqual('');
-        const bodyClasses = testing.body.getAttribute('class');
+        const bodyClasses = testing.elements.body.getAttribute('class');
         expect(bodyClasses).not.toEqual('dark-mode');
         expect(testing.state.colors).toEqual({
           backgroundColor: '#ffffff',
@@ -1044,9 +1044,9 @@ describe('Testing Checklist', () => {
       });
 
       it('expects "settings.changeIndividualColor" to get colors and store', async () => {
-        testing.background = { value: '#000000' };
-        testing.altBackground = { value: '#222222' };
-        testing.foreground = { value: '#ffffff' };
+        testing.elements.background = { value: '#000000' };
+        testing.elements.altBackground = { value: '#222222' };
+        testing.elements.foreground = { value: '#ffffff' };
 
         await testing.settings.changeIndividualColor();
 
@@ -1072,13 +1072,12 @@ describe('Testing Checklist', () => {
       it('expects "settings.removeCustomColors" to remove attached styles on body', () => {
         testing.settings.setCustomColors();
         testing.settings.removeCustomColors();
-        const style = testing.body.getAttribute('style');
+        const style = testing.elements.body.getAttribute('style');
         expect(style).toBeNull();
       });
-  
       it('expects "settings.setCustomColors" to attach style attributes to body', () => {
         testing.settings.setCustomColors();
-        const style = testing.body.getAttribute('style').replace(/\s/gm, '');
+        const style = testing.elements.body.getAttribute('style').replace(/\s/gm, '');
         expect(style).toEqual('--background-color:#ffffff;--alt-background-color:#fafad2;--foreground-color:#000000;--title-color:#800000;');
       });  
     });
