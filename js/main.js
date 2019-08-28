@@ -237,15 +237,15 @@ const testing = {
         <input id="edit-${ list.name }" class="input-text edit-checklist-name  hidden" value="${ list.name }" onkeypress="return testing.handleNamedKeypress('${ list.name }', event)" />
 
         <span id="actions-save-${ list.name }" class="checklist-action editing hidden">
-          <a href="#" onclick="testing.triggerEditSave('${ list.name }')">
+          <a href="#" onclick="testing.edit.save('${ list.name }')">
             <img src="images/checked.svg" />
           </a>
-          <a href="#" onclick="testing.triggerEditCancel('${ list.name }')">
+          <a href="#" onclick="testing.edit.cancel('${ list.name }')">
             <img src="images/error.svg" />
           </a>
         </span>
         <span id="actions-${ list.name }" class="checklist-action">
-          <a href="#" onclick="testing.triggerEdit('${ list.name }')">
+          <a href="#" onclick="testing.edit.trigger('${ list.name }')">
             <img src="images/edit.svg" />
           </a>
           <a href="#" onclick="testing.triggerDelete('${ list.name }')">
@@ -263,7 +263,7 @@ const testing = {
     switch(true) {
       case (type==='checklist-name'):
         if (event.keyCode === 13) {
-          testing.triggerSaveChecklist();
+          testing.newChecklist.save();
           return false;
         }
         break;
@@ -272,93 +272,94 @@ const testing = {
   },  
   handleNamedKeypress: (name, event) => {
     if (event.keyCode === 13) {
-      testing.triggerEditSave(name);
+      testing.edit.save(name);
       return false;
     }
     return true;
   },  
 
-  closeNewChecklist: () => {
-    testing.checklistName.value = '';
-    testing.newChecklistWrapperState = false;
-    testing.newChecklistWrapper.classList.add('hidden');
-  },
-  selectedCategory: null,
-  createChecklistCategories: () => {
-    let categoryElements = '';
-    let first = true;
-    testing.structure.categories.forEach((category, index) => {
-      if (first === true) {
-        testing.selectedCategory = category;
+  newChecklist: {
+    selectedCategory: null,
+    trigger: () => {
+      testing.newChecklistWrapperState = !testing.newChecklistWrapperState;
+      if (testing.newChecklistWrapperState === true) {
+        testing.newChecklist.createChecklistCategories();
+        testing.newChecklistWrapper.classList.remove('hidden');
+        testing.checklistName.focus();
+      } else {
+        testing.newChecklistWrapper.classList.add('hidden');
       }
-      categoryElements += `
-        <label class="checkbox-label">
-          <input class="all-categories" type="checkbox" data-title="${ category.title }" id="select-${ index }" name="select-${ category.title }" ${ (first ? "checked" : "") } onchange="testing.checkboxCategoryChange('${ category.title }', event)" />
-          <span class="checkbox-custom"></span>
-          <span class="checkbox-title">${ category.title }</span>
-        </label>
-      `;
-      first = false;
-    });
-
-    let wrapper = testing.html.fragmentFromString(categoryElements);
-    testing.newCategories.innerHTML = "";
-    testing.newCategories.appendChild(wrapper);
-  },
-  checkboxCategoryChange: (categoryTitle) => {
-    const categories = document.getElementsByClassName('all-categories');
-    for (let i = 0, len = categories.length; i < len; i++) {
-      const element = categories[i];
-      const elementTitle = element.getAttribute('data-title');
-      element.checked = (elementTitle === categoryTitle);
-    }
-    testing.structure.categories.forEach((category) => {
-      if (category.title === categoryTitle) {
-        testing.selectedCategory = category;
+    },
+  
+    close: () => {
+      testing.checklistName.value = '';
+      testing.newChecklistWrapperState = false;
+      testing.newChecklistWrapper.classList.add('hidden');  
+    },
+    save: async () => {
+      const name = testing.checklistName.value;
+      const category = testing.newChecklist.selectedCategory;
+  
+      if (name.length === 0 || category === null) {
+        return;
       }
-    });
-  },  
-  triggerNewChecklist: () => {
-    testing.newChecklistWrapperState = !testing.newChecklistWrapperState;
-    if (testing.newChecklistWrapperState === true) {
-      testing.createChecklistCategories();
-      testing.newChecklistWrapper.classList.remove('hidden');
-      testing.checklistName.focus();
-    } else {
-      testing.newChecklistWrapper.classList.add('hidden');
-    }
-  },
-  triggerCancelNewChecklist: () => {
-    testing.closeNewChecklist();
-  },
-  triggerSaveChecklist: async () => {
-    const name = testing.checklistName.value;
-    const category = testing.selectedCategory;
-
-    if (name.length === 0 || category === null) {
-      return;
-    }
-
-    let stored = await testing.store.getStoredKey();
-    let exists = false;
-    stored.forEach((item) => {
-      if (item.name === name) {
-        exists = true;
+  
+      let stored = await testing.store.getStoredKey();
+      let exists = false;
+      stored.forEach((item) => {
+        if (item.name === name) {
+          exists = true;
+        }
+      });
+      if (exists) {
+        return;
       }
-    });
-    if (exists) {
-      return;
-    }
+  
+      stored.push({ name, title: category.title });
+      stored = stored.sort((a, b) => a.name - b.name);
+  
+      await testing.store.set(testing.store.storedKey, stored);
+      await testing.store.set(name, category);
+  
+      testing.newChecklist.selectedCategory = null;
+      testing.newChecklist.close();
+      testing.getStoredElements(testing.checklists);
+    },  
 
-    stored.push({ name, title: category.title });
-    stored = stored.sort((a, b) => a.name - b.name);
-
-    await testing.store.set(testing.store.storedKey, stored);
-    await testing.store.set(name, category);
-
-    testing.selectedCategory = null;
-    testing.closeNewChecklist();
-    testing.getStoredElements(testing.checklists);
+    createChecklistCategories: () => {
+      let categoryElements = '';
+      let first = true;
+      testing.structure.categories.forEach((category, index) => {
+        if (first === true) {
+          testing.newChecklist.selectedCategory = category;
+        }
+        categoryElements += `
+          <label class="checkbox-label">
+            <input class="all-categories" type="checkbox" data-title="${ category.title }" id="select-${ index }" name="select-${ category.title }" ${ (first ? "checked" : "") } onchange="testing.newChecklist.checkboxCategoryChange('${ category.title }', event)" />
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-title">${ category.title }</span>
+          </label>
+        `;
+        first = false;
+      });
+  
+      let wrapper = testing.html.fragmentFromString(categoryElements);
+      testing.newCategories.innerHTML = "";
+      testing.newCategories.appendChild(wrapper);
+    },
+    checkboxCategoryChange: (categoryTitle) => {
+      const categories = document.getElementsByClassName('all-categories');
+      for (let i = 0, len = categories.length; i < len; i++) {
+        const element = categories[i];
+        const elementTitle = element.getAttribute('data-title');
+        element.checked = (elementTitle === categoryTitle);
+      }
+      testing.structure.categories.forEach((category) => {
+        if (category.title === categoryTitle) {
+          testing.newChecklist.selectedCategory = category;
+        }
+      });
+    },  
   },
 
   triggerDelete: async (name) => {
@@ -373,78 +374,80 @@ const testing = {
     testing.getStoredElements(testing.checklists);
   },
 
-  closeEdit: (name) => {
-    const active = document.getElementById(`checklist-${ name }`);
-    active.classList.remove('editing');
-    
-    const actions = document.getElementById(`actions-${ name }`);
-    const save = document.getElementById(`actions-save-${ name }`);
-    const title = document.getElementById(`title-${ name }`);
-    const input = document.getElementById(`edit-${ name }`);
-
-    actions.classList.remove('hidden');
-    save.classList.add('hidden');
-    title.classList.remove('hidden');
-    input.classList.add('hidden');
-  },
-  triggerEdit: (name) => {
-    testing.logging.show('triggerEdit', { name });
-
-    const active = document.getElementById(`checklist-${ name }`);
-    active.classList.add('editing');
-    
-    const actions = document.getElementById(`actions-${ name }`);
-    const save = document.getElementById(`actions-save-${ name }`);
-    const title = document.getElementById(`title-${ name }`);
-    const input = document.getElementById(`edit-${ name }`);
-
-    actions.classList.add('hidden');
-    save.classList.remove('hidden');
-    title.classList.add('hidden');
-    input.classList.remove('hidden');
-
-    input.focus();
-    input.select();
-  },
-  triggerEditSave: async (name) => {
-    testing.logging.show('triggerEditSave', { name });
-
-    const input = document.getElementById(`edit-${ name }`);
-    const newName = input.value;
-
-    testing.closeEdit(name);
-
-    let stored = await testing.store.getStoredKey();
-    let index = -1;
-    for (let i = 0, len = stored.length; i < len; i++) {
-      if (stored[i].name === name) {
-        index = i;
-        break;
+  edit: {
+    close: (name) => {
+      const active = document.getElementById(`checklist-${ name }`);
+      active.classList.remove('editing');
+      
+      const actions = document.getElementById(`actions-${ name }`);
+      const save = document.getElementById(`actions-save-${ name }`);
+      const title = document.getElementById(`title-${ name }`);
+      const input = document.getElementById(`edit-${ name }`);
+  
+      actions.classList.remove('hidden');
+      save.classList.add('hidden');
+      title.classList.remove('hidden');
+      input.classList.add('hidden');
+    },
+    trigger: (name) => {
+      testing.logging.show('triggerEdit', { name });
+  
+      const active = document.getElementById(`checklist-${ name }`);
+      active.classList.add('editing');
+      
+      const actions = document.getElementById(`actions-${ name }`);
+      const save = document.getElementById(`actions-save-${ name }`);
+      const title = document.getElementById(`title-${ name }`);
+      const input = document.getElementById(`edit-${ name }`);
+  
+      actions.classList.add('hidden');
+      save.classList.remove('hidden');
+      title.classList.add('hidden');
+      input.classList.remove('hidden');
+  
+      input.focus();
+      input.select();
+    },
+    save: async (name) => {
+      testing.logging.show('save', { name });
+  
+      const input = document.getElementById(`edit-${ name }`);
+      const newName = input.value;
+  
+      testing.edit.close(name);
+  
+      let stored = await testing.store.getStoredKey();
+      let index = -1;
+      for (let i = 0, len = stored.length; i < len; i++) {
+        if (stored[i].name === name) {
+          index = i;
+          break;
+        }
       }
-    }
-    if (index > -1) {
-      let old = stored.splice(index, 1)[0];
-      old.name = newName;
-      stored.push(old);
-      stored = stored.sort((a, b) => a.name - b.name);
-    }
-
-    const state = await testing.store.get(name);
-    testing.logging.show('triggerEditSave', { state });
-
-    await testing.store.set(testing.store.storedKey, stored);
-    await testing.store.remove(name);
-    await testing.store.set(newName, state);
-
-    testing.getStoredElements(testing.checklists);
-  },
-  triggerEditCancel: (name) => {
-    testing.logging.show('triggerEditCancel', { name });
-    
-    const input = document.getElementById(`edit-${ name }`);
-    input.value = name;
-    
-    testing.closeEdit(name);
+      if (index > -1) {
+        let old = stored.splice(index, 1)[0];
+        old.name = newName;
+        stored.push(old);
+        stored = stored.sort((a, b) => a.name - b.name);
+      }
+  
+      const state = await testing.store.get(name);
+      testing.logging.show('save', { state });
+  
+      await testing.store.set(testing.store.storedKey, stored);
+      await testing.store.remove(name);
+      await testing.store.set(newName, state);
+  
+      testing.getStoredElements(testing.checklists);
+    },
+    cancel: (name) => {
+      testing.logging.show('cancel', { name });
+      
+      const input = document.getElementById(`edit-${ name }`);
+      input.value = name;
+      
+      testing.edit.close(name);
+    },  
   },
 
   buildChecklistState: (state) => {

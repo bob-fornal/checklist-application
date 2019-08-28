@@ -377,8 +377,9 @@ describe('Testing Checklist', () => {
       expect(testing.state).not.toBeNull();
       expect(testing.store).not.toBeNull();
       expect(testing.html).not.toBeNull();
+      expect(testing.logging).not.toBeNull();
 
-      expect(testing.selectedCategory).toBeNull();
+      expect(testing.newChecklist.selectedCategory).toBeNull();
     });
 
     it('expects functions', () => {
@@ -391,19 +392,18 @@ describe('Testing Checklist', () => {
       expect(testing.handleKeypress).toEqual(jasmine.any(Function));
       expect(testing.handleNamedKeypress).toEqual(jasmine.any(Function));
 
-      expect(testing.closeNewChecklist).toEqual(jasmine.any(Function));
-      expect(testing.createChecklistCategories).toEqual(jasmine.any(Function));
-      expect(testing.checkboxCategoryChange).toEqual(jasmine.any(Function));
-      expect(testing.triggerNewChecklist).toEqual(jasmine.any(Function));
-      expect(testing.triggerCancelNewChecklist).toEqual(jasmine.any(Function));
-      expect(testing.triggerSaveChecklist).toEqual(jasmine.any(Function));
+      expect(testing.newChecklist.close).toEqual(jasmine.any(Function));
+      expect(testing.newChecklist.createChecklistCategories).toEqual(jasmine.any(Function));
+      expect(testing.newChecklist.checkboxCategoryChange).toEqual(jasmine.any(Function));
+      expect(testing.newChecklist.trigger).toEqual(jasmine.any(Function));
+      expect(testing.newChecklist.save).toEqual(jasmine.any(Function));
 
       expect(testing.triggerDelete).toEqual(jasmine.any(Function));
 
-      expect(testing.closeEdit).toEqual(jasmine.any(Function));
-      expect(testing.triggerEdit).toEqual(jasmine.any(Function));
-      expect(testing.triggerEditSave).toEqual(jasmine.any(Function));
-      expect(testing.triggerEditCancel).toEqual(jasmine.any(Function));
+      expect(testing.edit.close).toEqual(jasmine.any(Function));
+      expect(testing.edit.trigger).toEqual(jasmine.any(Function));
+      expect(testing.edit.save).toEqual(jasmine.any(Function));
+      expect(testing.edit.cancel).toEqual(jasmine.any(Function));
 
       expect(testing.buildChecklistState).toEqual(jasmine.any(Function));
       expect(testing.buildChecklistCopy).toEqual(jasmine.any(Function));
@@ -481,75 +481,75 @@ describe('Testing Checklist', () => {
       await testing.getStoredElements(element);
 
       const elementState = element.innerHTML.replace(/\s/gm, '');
-      expect(elementState).toEqual('<divid="checklist-test-name"class="active-checklist"><aid="title-test-name"class="checklist-title"href="#"onclick="testing.triggerChecklistView(\'test-name\')"><divclass="active-title">test-name</div><divclass="active-category">test-title</div></a><inputid="edit-test-name"class="input-textedit-checklist-namehidden"value="test-name"onkeypress="returntesting.handleNamedKeypress(\'test-name\',event)"><spanid="actions-save-test-name"class="checklist-actioneditinghidden"><ahref="#"onclick="testing.triggerEditSave(\'test-name\')"><imgsrc="images/checked.svg"></a><ahref="#"onclick="testing.triggerEditCancel(\'test-name\')"><imgsrc="images/error.svg"></a></span><spanid="actions-test-name"class="checklist-action"><ahref="#"onclick="testing.triggerEdit(\'test-name\')"><imgsrc="images/edit.svg"></a><ahref="#"onclick="testing.triggerDelete(\'test-name\')"><imgsrc="images/trash.svg"></a></span></div>');
+      expect(elementState).toEqual('<divid="checklist-test-name"class="active-checklist"><aid="title-test-name"class="checklist-title"href="#"onclick="testing.triggerChecklistView(\'test-name\')"><divclass="active-title">test-name</div><divclass="active-category">test-title</div></a><inputid="edit-test-name"class="input-textedit-checklist-namehidden"value="test-name"onkeypress="returntesting.handleNamedKeypress(\'test-name\',event)"><spanid="actions-save-test-name"class="checklist-actioneditinghidden"><ahref="#"onclick="testing.edit.save(\'test-name\')"><imgsrc="images/checked.svg"></a><ahref="#"onclick="testing.edit.cancel(\'test-name\')"><imgsrc="images/error.svg"></a></span><spanid="actions-test-name"class="checklist-action"><ahref="#"onclick="testing.edit.trigger(\'test-name\')"><imgsrc="images/edit.svg"></a><ahref="#"onclick="testing.triggerDelete(\'test-name\')"><imgsrc="images/trash.svg"></a></span></div>');
     });
 
     describe('[handle keypress functionality', () => {
-      it('expects "handleKeypress" to not triggerSaveChecklist [type!=checklist-name and keycode!=13]', () => {
-        spyOn(testing, 'triggerSaveChecklist').and.stub();
+      it('expects "handleKeypress" to not newChecklist.save [type!=checklist-name and keycode!=13]', () => {
+        spyOn(testing.newChecklist, 'save').and.stub();
 
         const result = testing.handleKeypress('not-checklist-name', { keyCode: 14 });
 
         expect(result).toEqual(true);
-        expect(testing.triggerSaveChecklist).not.toHaveBeenCalled();
+        expect(testing.newChecklist.save).not.toHaveBeenCalled();
       });
-      it('expects "handleKeypress" to not triggerSaveChecklist [type=checklist-name and keycode!=13]', () => {
-        spyOn(testing, 'triggerSaveChecklist').and.stub();
+      it('expects "handleKeypress" to not newChecklist.save [type=checklist-name and keycode!=13]', () => {
+        spyOn(testing.newChecklist, 'save').and.stub();
 
         const result = testing.handleKeypress('checklist-name', { keyCode: 14 });
 
         expect(result).toEqual(true);
-        expect(testing.triggerSaveChecklist).not.toHaveBeenCalled();
+        expect(testing.newChecklist.save).not.toHaveBeenCalled();
       });
-      it('expects "handleKeypress" to not triggerSaveChecklist [type!=checklist-name and keycode=13]', () => {
-        spyOn(testing, 'triggerSaveChecklist').and.stub();
+      it('expects "handleKeypress" to not newChecklist.save [type!=checklist-name and keycode=13]', () => {
+        spyOn(testing.newChecklist, 'save').and.stub();
 
         const result = testing.handleKeypress('not-checklist-name', { keyCode: 13 });
 
         expect(result).toEqual(true);
-        expect(testing.triggerSaveChecklist).not.toHaveBeenCalled();
+        expect(testing.newChecklist.save).not.toHaveBeenCalled();
       });
-      it('expects "handleKeypress" to triggerSaveChecklist [type=checklist-name and keycode=13]', () => {
-        spyOn(testing, 'triggerSaveChecklist').and.stub();
+      it('expects "handleKeypress" to newChecklist.save [type=checklist-name and keycode=13]', () => {
+        spyOn(testing.newChecklist, 'save').and.stub();
 
         const result = testing.handleKeypress('checklist-name', { keyCode: 13 });
 
         expect(result).toEqual(false);
-        expect(testing.triggerSaveChecklist).toHaveBeenCalled();
+        expect(testing.newChecklist.save).toHaveBeenCalled();
       });
 
       it('expects "handleNamedKeypress" to return true on keyCode not 13', () => {
-        spyOn(testing, 'triggerEditSave').and.stub();
+        spyOn(testing.edit, 'save').and.stub();
 
         const result = testing.handleNamedKeypress('test', { keyCode: 14 });
 
         expect(result).toEqual(true);
-        expect(testing.triggerEditSave).not.toHaveBeenCalledWith('test');
+        expect(testing.edit.save).not.toHaveBeenCalledWith('test');
       });
       it('expects "handleNamedKeypress" to triggerExitSave with name on keyCode 13', () => {
-        spyOn(testing, 'triggerEditSave').and.stub();
+        spyOn(testing.edit, 'save').and.stub();
 
         const result = testing.handleNamedKeypress('test', { keyCode: 13 });
 
         expect(result).toEqual(false);
-        expect(testing.triggerEditSave).toHaveBeenCalledWith('test');
+        expect(testing.edit.save).toHaveBeenCalledWith('test');
       });
     });
 
     describe('[checklist functionality]', () => {
-      it('expects "closeNewChecklist" to set wrapper state and hidden appropriately', () => {
+      it('expects "newChecklist.close" to set wrapper state and hidden appropriately', () => {
         testing.checklistName.value = 'testing';
         testing.newChecklistWrapperState = true;
         testing.newChecklistWrapper.classList.remove('hidden');
 
-        testing.closeNewChecklist();
+        testing.newChecklist.close();
 
         expect(testing.checklistName.value).toEqual('');
         expect(testing.newChecklistWrapperState).toEqual(false);
         const classes = testing.newChecklistWrapper.getAttribute('class');
         expect(classes).toEqual('hidden');
       });
-      it('expects "createChecklistCategories" to create a checklist and update testing.newCategories', () => {
+      it('expects "newChecklist.createChecklistCategories" to create a checklist and update testing.newCategories', () => {
         testing.structure = {
           categories: [
             { title: 'first' },
@@ -558,13 +558,13 @@ describe('Testing Checklist', () => {
           ]
         };
         
-        testing.createChecklistCategories();
+        testing.newChecklist.createChecklistCategories();
 
-        expect(testing.selectedCategory).toEqual({ title: 'first' });
+        expect(testing.newChecklist.selectedCategory).toEqual({ title: 'first' });
         const newCategoriesState = testing.newCategories.innerHTML.replace(/\s/gm, '');
-        expect(newCategoriesState).toEqual('<labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="first"id="select-0"name="select-first"checked=""onchange="testing.checkboxCategoryChange(\'first\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">first</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="second"id="select-1"name="select-second"onchange="testing.checkboxCategoryChange(\'second\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">second</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="third"id="select-2"name="select-third"onchange="testing.checkboxCategoryChange(\'third\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">third</span></label>');
+        expect(newCategoriesState).toEqual('<labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="first"id="select-0"name="select-first"checked=""onchange="testing.newChecklist.checkboxCategoryChange(\'first\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">first</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="second"id="select-1"name="select-second"onchange="testing.newChecklist.checkboxCategoryChange(\'second\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">second</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="third"id="select-2"name="select-third"onchange="testing.newChecklist.checkboxCategoryChange(\'third\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">third</span></label>');
       });
-      it('expects "checkboxCategoryChange" to set the correct category', () => {
+      it('expects "newChecklist.checkboxCategoryChange" to set the correct category', () => {
         let element1, element2, element3;
         testing.structure = {
           categories: [
@@ -597,95 +597,88 @@ describe('Testing Checklist', () => {
           }
         });
 
-        testing.checkboxCategoryChange('title2');
+        testing.newChecklist.checkboxCategoryChange('title2');
 
         expect(element1.checked).toEqual(false);
         expect(element2.checked).toEqual(true);
         expect(element3.checked).toEqual(false);
-        expect(testing.selectedCategory).toEqual({ title: 'title2' });
+        expect(testing.newChecklist.selectedCategory).toEqual({ title: 'title2' });
       });
-      it('expects "triggerNewChecklist" to change state and make visible [TRUE]', () => {
+      it('expects "newChecklist.trigger" to change state and make visible [TRUE]', () => {
         testing.newChecklistWrapperState = false;
-        spyOn(testing, 'createChecklistCategories').and.stub();
+        spyOn(testing.newChecklist, 'createChecklistCategories').and.stub();
 
-        testing.triggerNewChecklist();
+        testing.newChecklist.trigger();
 
         expect(testing.newChecklistWrapperState).toEqual(true);
         const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
         expect(newChecklistWrapperState).toBeNull();
-        expect(testing.createChecklistCategories).toHaveBeenCalled();
+        expect(testing.newChecklist.createChecklistCategories).toHaveBeenCalled();
       });
-      it('expects "triggerNewChecklist" to change state and make hidden [FALSE]', () => {
+      it('expects "newChecklist.trigger" to change state and make hidden [FALSE]', () => {
         testing.newChecklistWrapperState = true;
 
-        testing.triggerNewChecklist();
+        testing.newChecklist.trigger();
 
         expect(testing.newChecklistWrapperState).toEqual(false);
         const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
         expect(newChecklistWrapperState).toEqual('hidden');
       });
-      it('expects "triggerCancelNewChecklist" to fire closeNewChecklist', () => {
-        spyOn(testing, 'closeNewChecklist').and.stub();
-
-        testing.triggerCancelNewChecklist();
-
-        expect(testing.closeNewChecklist).toHaveBeenCalled();
-      });
-      it('expects "triggerSaveChecklist" to fail out [name=""]', async () => {
-        spyOn(testing, 'closeNewChecklist').and.stub();
+      it('expects "newChecklist.save" to fail out [name=""]', async () => {
+        spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
         testing.checklistName.value = '';
-        testing.selectedCategory = {};
+        testing.newChecklist.selectedCategory = {};
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-name'
         }]);
 
-        await testing.triggerSaveChecklist();
+        await testing.newChecklist.save();
 
-        expect(testing.selectedCategory).not.toBeNull();
-        expect(testing.closeNewChecklist).not.toHaveBeenCalled();
+        expect(testing.newChecklist.selectedCategory).not.toBeNull();
+        expect(testing.newChecklist.close).not.toHaveBeenCalled();
         expect(testing.getStoredElements).not.toHaveBeenCalled();
       });
-      it('expects "triggerSaveChecklist" to fail out [selectedCategory=NULL]', async () => {
-        spyOn(testing, 'closeNewChecklist').and.stub();
+      it('expects "newChecklist.save" to fail out [selectedCategory=NULL]', async () => {
+        spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
         testing.checklistName.value = 'test-name';
-        testing.selectedCategory = null;
+        testing.newChecklist.selectedCategory = null;
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-name'
         }]);
 
-        await testing.triggerSaveChecklist();
+        await testing.newChecklist.save();
 
-        expect(testing.selectedCategory).toBeNull();
-        expect(testing.closeNewChecklist).not.toHaveBeenCalled();
+        expect(testing.newChecklist.selectedCategory).toBeNull();
+        expect(testing.newChecklist.close).not.toHaveBeenCalled();
         expect(testing.getStoredElements).not.toHaveBeenCalled();
       });
-      it('expects "triggerSaveChecklist" to attempt checklist creation [EXIST]', async () => {
-        spyOn(testing, 'closeNewChecklist').and.stub();
+      it('expects "newChecklist.save" to attempt checklist creation [EXIST]', async () => {
+        spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
         testing.checklistName.value = 'test-name';
-        testing.selectedCategory = {};
+        testing.newChecklist.selectedCategory = {};
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-name'
         }]);
 
-        await testing.triggerSaveChecklist();
+        await testing.newChecklist.save();
 
-        expect(testing.selectedCategory).not.toBeNull();
-        expect(testing.closeNewChecklist).not.toHaveBeenCalled();
+        expect(testing.newChecklist.selectedCategory).not.toBeNull();
+        expect(testing.newChecklist.close).not.toHaveBeenCalled();
         expect(testing.getStoredElements).not.toHaveBeenCalled();
       });
-      it('expects "triggerSaveChecklist" to attempt checklist creation [NOT EXIST]', async () => {
-        spyOn(testing, 'closeNewChecklist').and.stub();
+      it('expects "newChecklist.save" to attempt checklist creation [NOT EXIST]', async () => {
+        spyOn(testing.newChecklist, 'close').and.stub();
         spyOn(testing, 'getStoredElements').and.stub();
         testing.checklistName.value = 'test-name';
-        testing.selectedCategory = { data: 'mock-data' };
+        testing.newChecklist.selectedCategory = { data: 'mock-data' };
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'test-not-name'
         }]);
 
-        await testing.triggerSaveChecklist();
+        await testing.newChecklist.save();
 
         const stored = JSON.parse(mockLocalStorage.storage['~~stored~~']);
         const data = JSON.parse(mockLocalStorage.storage['test-name']);
@@ -696,7 +689,7 @@ describe('Testing Checklist', () => {
         }]);
         expect(data).toEqual({ data: 'mock-data' });
         expect(testing.selectedCategory).toBeNull();
-        expect(testing.closeNewChecklist).toHaveBeenCalled();
+        expect(testing.newChecklist.close).toHaveBeenCalled();
         expect(testing.getStoredElements).toHaveBeenCalled();
       });
     });
@@ -719,8 +712,8 @@ describe('Testing Checklist', () => {
     });
 
     describe('[title edit functionality', () => {
-      it('expects "closeEdit" to set up hidden classes', () => {
-        testing.closeEdit('test');
+      it('expects "edit.close" to set up hidden classes', () => {
+        testing.edit.close('test');
 
         const editingState = forTesting['checklist-test'].getAttribute('class');
         const actionsState = forTesting['actions-test'].getAttribute('class');
@@ -733,8 +726,8 @@ describe('Testing Checklist', () => {
         expect(titleState).toBeNull();
         expect(inputState).toEqual('hidden');
       });
-      it('expects "triggerEdit" to set up hidden classes', () => {
-        testing.triggerEdit('test');
+      it('expects "edit.trigger" to set up hidden classes', () => {
+        testing.edit.trigger('test');
 
         const editingState = forTesting['checklist-test'].getAttribute('class');
         const actionsState = forTesting['actions-test'].getAttribute('class');
@@ -747,8 +740,8 @@ describe('Testing Checklist', () => {
         expect(titleState).toEqual('hidden');
         expect(inputState).toBeNull();
       });
-      it('expects "triggerEditSave" to trigger closeEdit with name and store', async () => {
-        spyOn(testing, 'closeEdit').and.stub();
+      it('expects "edit.save" to trigger closeEdit with name and store', async () => {
+        spyOn(testing.edit, 'close').and.stub();
         mockLocalStorage.storage['~~stored~~'] = JSON.stringify([{
           name: 'list'
         }, {
@@ -756,9 +749,9 @@ describe('Testing Checklist', () => {
         }]);
         mockLocalStorage.storage.name = JSON.stringify({ title: 'test' });
 
-        await testing.triggerEditSave('name');
+        await testing.edit.save('name');
 
-        expect(testing.closeEdit).toHaveBeenCalledWith('name');
+        expect(testing.edit.close).toHaveBeenCalledWith('name');
         const stored = JSON.parse(mockLocalStorage.storage['~~stored~~']);
         const oldList = mockLocalStorage.storage.name || null;
         const newList = JSON.parse(mockLocalStorage.storage['new-name']);
@@ -770,12 +763,12 @@ describe('Testing Checklist', () => {
         expect(oldList).toBeNull();
         expect(newList).toEqual({ title: 'test' });
       });
-      it('expects "triggerEditCancel" to trigger closeEdit with name', () => {
-        spyOn(testing, 'closeEdit').and.stub();
+      it('expects "edit.cancel" to trigger edit.close with name', () => {
+        spyOn(testing.edit, 'close').and.stub();
 
-        testing.triggerEditCancel('name');
+        testing.edit.cancel('name');
 
-        expect(testing.closeEdit).toHaveBeenCalledWith('name');
+        expect(testing.edit.close).toHaveBeenCalledWith('name');
       });
     });
 

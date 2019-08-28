@@ -21,7 +21,7 @@
           <a href="#" onclick="testing.triggerSettings()" title="Change Settings">
             <img class="change-settings-item" src="images/setting.svg" />
           </a>
-          <a href="#" onclick="testing.triggerNewChecklist()" title="Create New Checklist">
+          <a href="#" onclick="testing.newChecklist.trigger()" title="Create New Checklist">
             <img class="new-checklist-item" src="images/plus.svg" />
           </a>
         </div>
@@ -47,8 +47,8 @@
         </div>
         <div id="new-categories" class="content-categories"></div>
         <div class="navigation">
-          <a class="button save" href="#" onclick="testing.triggerSaveChecklist()">Save</a>
-          <a class="button cancel" href="#" onclick="testing.triggerCancelNewChecklist()">Cancel</a>
+          <a class="button save" href="#" onclick="testing.newChecklist.save()">Save</a>
+          <a class="button cancel" href="#" onclick="testing.newChecklist.close()">Cancel</a>
         </div>
       </div>
 
