@@ -557,12 +557,14 @@ describe('Testing Checklist', () => {
             { title: 'third' }
           ]
         };
+        const element = document.createElement('div');
         
-        testing.newChecklist.createChecklistCategories();
+        const result = testing.newChecklist.createChecklistCategories();
 
+        element.appendChild(result);
+        const capture = element.innerHTML.replace(/\s/gm, '');
         expect(testing.newChecklist.selectedCategory).toEqual({ title: 'first' });
-        const newCategoriesState = testing.elements.newCategories.innerHTML.replace(/\s/gm, '');
-        expect(newCategoriesState).toEqual('<labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="first"id="select-0"name="select-first"checked=""onchange="testing.newChecklist.checkboxCategoryChange(\'first\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">first</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="second"id="select-1"name="select-second"onchange="testing.newChecklist.checkboxCategoryChange(\'second\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">second</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="third"id="select-2"name="select-third"onchange="testing.newChecklist.checkboxCategoryChange(\'third\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">third</span></label>');
+        expect(capture).toEqual('<labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="first"id="select-0"name="select-first"checked=""onchange="testing.newChecklist.checkboxCategoryChange(\'first\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">first</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="second"id="select-1"name="select-second"onchange="testing.newChecklist.checkboxCategoryChange(\'second\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">second</span></label><labelclass="checkbox-label"><inputclass="all-categories"type="checkbox"data-title="third"id="select-2"name="select-third"onchange="testing.newChecklist.checkboxCategoryChange(\'third\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">third</span></label>');
       });
       it('expects "newChecklist.checkboxCategoryChange" to set the correct category', () => {
         let element1, element2, element3;
@@ -606,7 +608,14 @@ describe('Testing Checklist', () => {
       });
       it('expects "newChecklist.trigger" to change state and make visible [TRUE]', () => {
         testing.newChecklist.state = false;
-        spyOn(testing.newChecklist, 'createChecklistCategories').and.stub();
+        testing.structure = {
+          categories: [
+            { title: 'first' },
+            { title: 'second' },
+            { title: 'third' }
+          ]
+        };
+        spyOn(testing.newChecklist, 'createChecklistCategories').and.callThrough();
 
         testing.newChecklist.trigger();
 
@@ -869,20 +878,24 @@ describe('Testing Checklist', () => {
       it('expects "buildSettingsState" to generate settings content [debug=FALSE, displayMode=""]', () => {
         testing.state.debug = false;
         testing.state.displayMode = '';
+        let element = document.createElement('div');
 
-        testing.buildSettingsState();
+        const result = testing.buildSettingsState();
 
-        const innerHTML = testing.elements.settingsList.innerHTML.replace(/\s/gm, '');
-        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+        element.append(result);
+        const capture = element.innerHTML.replace(/\s/gm, '');
+        expect(capture).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
       });
       it('expects "buildSettingsState" to generate settings content [debug=TRUE, displayMode=""]', () => {
         testing.state.debug = true;
         testing.state.displayMode = '';
+        let element = document.createElement('div');
 
-        testing.buildSettingsState();
+        const result = testing.buildSettingsState();
 
-        const innerHTML = testing.elements.settingsList.innerHTML.replace(/\s/gm, '');
-        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"checked=""onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+        element.append(result);
+        const capture = element.innerHTML.replace(/\s/gm, '');
+        expect(capture).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"checked=""onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
       });
 
       it('expects "settings.trigger" to set up hidden classes and build state', () => {

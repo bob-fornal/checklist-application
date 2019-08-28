@@ -227,7 +227,6 @@ const testing = {
     const checklists = await testing.store.getStoredKey();
 
     attach.innerHTML = "";
-
     testing.logging.show('getStoredElements', { checklists });
     for(let list of checklists) {
       attach.appendChild(testing.buildChecklistElement(list));
@@ -291,7 +290,9 @@ const testing = {
     trigger: () => {
       testing.newChecklist.state = !testing.newChecklist.state;
       if (testing.newChecklist.state === true) {
-        testing.newChecklist.createChecklistCategories();
+        testing.elements.newCategories.innerHTML = '';
+        testing.elements.newCategories.appendChild(testing.newChecklist.createChecklistCategories());
+
         testing.elements.newChecklistWrapper.classList.remove('hidden');
         testing.elements.checklistName.focus();
       } else {
@@ -352,8 +353,7 @@ const testing = {
       });
   
       let wrapper = testing.html.fragmentFromString(categoryElements);
-      testing.elements.newCategories.innerHTML = "";
-      testing.elements.newCategories.appendChild(wrapper);
+      return wrapper;
     },
     checkboxCategoryChange: (categoryTitle) => {
       const categories = document.getElementsByClassName('all-categories');
@@ -488,8 +488,7 @@ const testing = {
       `;
   
       let wrapper = testing.html.fragmentFromString(template);
-      testing.elements.displayedChecklist.innerHTML = "";
-      testing.elements.displayedChecklist.appendChild(wrapper);
+      return wrapper;
     },
     copy: (state) => {
       const categoryTitle = `### ${ state.title }`;
@@ -517,7 +516,9 @@ const testing = {
   
       state.name = name;
       await testing.elements.triggerCopyItem.setAttribute('onclick', `testing.checklist.copy('${ name }')`);
-      testing.buildChecklist.state(state);
+
+      testing.elements.displayedChecklist.innerHTML = "";
+      testing.elements.displayedChecklist.appendChild(testing.buildChecklist.state(state));
   
       testing.elements.newChecklistItem.classList.add('hidden');
       testing.elements.copyChecklistItem.classList.remove('hidden');
@@ -600,9 +601,7 @@ const testing = {
       </div>
     `;
     let wrapper = testing.html.fragmentFromString(content);
-
-    testing.elements.settingsList.innerHTML = "";
-    testing.elements.settingsList.appendChild(wrapper);
+    return wrapper;
   },
 
   settings: {
@@ -614,7 +613,8 @@ const testing = {
       testing.elements.settingsList.classList.remove('hidden');
       testing.elements.settingsItem.classList.remove('hidden');
   
-      testing.buildSettingsState();
+      testing.elements.settingsList.innerHTML = "";
+      testing.elements.settingsList.appendChild(testing.buildSettingsState());
   
       if (forTest === false) {
         setTimeout(() => {
@@ -667,7 +667,9 @@ const testing = {
         testing.settings.removeCustomColors();
       }
   
-      testing.buildSettingsState();
+      testing.elements.settingsList.innerHTML = "";
+      testing.elements.settingsList.appendChild(testing.buildSettingsState());
+
       if (displayMode === 'customMode') {
         setTimeout(() => {
           testing.settings.disableCustomColorModeStates(false);
