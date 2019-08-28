@@ -172,7 +172,30 @@ const testing = {
   
     background: null,
     altBackground: null,
-    foreground: null  
+    foreground: null,
+
+    init: () => {
+      let elements = testing.elements;
+      elements.body = document.getElementById('body');
+
+      elements.checklistName = document.getElementById('checklist-name');
+      elements.newCategories = document.getElementById('new-categories');
+      elements.checklists = document.getElementById('checklists');
+      elements.settingsList = document.getElementById('settings');
+  
+      elements.newChecklistItem = document.getElementById('nav-new-checklist-item');
+      elements.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
+      elements.settingsItem = document.getElementById('nav-settings-item');
+      elements.messageItem = document.getElementById('message');
+  
+      elements.newChecklistWrapper = document.getElementById('new-checklist-wrapper');
+      testing.newChecklist.state = false;
+  
+      elements.displayedChecklist = document.getElementById('displayed-checklist');
+  
+      elements.triggerCopyItem = document.getElementById('trigger-copy');
+      elements.copyAreaItem = document.getElementById('copy-area');  
+    }
   },
 
   structure: null,
@@ -183,26 +206,7 @@ const testing = {
     testing.html = html;
     testing.logging = logging;
 
-    let elements = testing.elements;
-    elements.body = document.getElementById('body');
-
-    elements.checklistName = document.getElementById('checklist-name');
-    elements.newCategories = document.getElementById('new-categories');
-    elements.checklists = document.getElementById('checklists');
-    elements.settingsList = document.getElementById('settings');
-
-    elements.newChecklistItem = document.getElementById('nav-new-checklist-item');
-    elements.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
-    elements.settingsItem = document.getElementById('nav-settings-item');
-    elements.messageItem = document.getElementById('message');
-
-    elements.newChecklistWrapper = document.getElementById('new-checklist-wrapper');
-    testing.newChecklist.state = false;
-
-    elements.displayedChecklist = document.getElementById('displayed-checklist');
-
-    elements.triggerCopyItem = document.getElementById('trigger-copy');
-    elements.copyAreaItem = document.getElementById('copy-area');
+    testing.elements.init();
 
     testing.getStoredElements(testing.checklists);
 
@@ -214,7 +218,7 @@ const testing = {
     });
 
     if (testing.state.displayMode === 'customMode') {
-      elements.body.classList.add('dark-mode');
+      testing.elements.body.classList.add('dark-mode');
       testing.settings.setCustomColors();      
     }
   },
