@@ -155,7 +155,7 @@ const testing = {
   checklistName: null,
   newCategories: null,
   checklists: null,
-  settings: null,
+  settingsList: null,
 
   newChecklistItem: null,
   copyChecklistItem: null,
@@ -186,7 +186,7 @@ const testing = {
     testing.checklistName = document.getElementById('checklist-name');
     testing.newCategories = document.getElementById('new-categories');
     testing.checklists = document.getElementById('checklists');
-    testing.settings = document.getElementById('settings');
+    testing.settingsList = document.getElementById('settings');
 
     testing.newChecklistItem = document.getElementById('nav-new-checklist-item');
     testing.copyChecklistItem = document.getElementById('nav-copy-checklist-item');
@@ -212,7 +212,7 @@ const testing = {
 
     if (testing.state.displayMode === 'customMode') {
       testing.body.classList.add('dark-mode');
-      testing.setCustomColors();      
+      testing.settings.setCustomColors();      
     }
   },
 
@@ -230,7 +230,7 @@ const testing = {
   buildChecklistElement: (list)  => {
     const template = `
       <div id="checklist-${ list.name }" class="active-checklist">
-        <a id="title-${ list.name }" class="checklist-title"href="#" onclick="testing.triggerChecklistView('${ list.name }')">
+        <a id="title-${ list.name }" class="checklist-title"href="#" onclick="testing.checklist.view('${ list.name }')">
           <div class="active-title">${ list.name }</div>
           <div class="active-category">${ list.title }</div>
         </a>
@@ -359,7 +359,7 @@ const testing = {
           testing.newChecklist.selectedCategory = category;
         }
       });
-    },  
+    }
   },
 
   triggerDelete: async (name) => {
@@ -447,105 +447,109 @@ const testing = {
       input.value = name;
       
       testing.edit.close(name);
-    },  
+    } 
   },
 
-  buildChecklistState: (state) => {
-    testing.logging.show('buildChecklistState', { state });
-
-    let content = '';
-    const categoryTitle = `<h3 class="category-title">${ state.title }</h3>`;
-    let categoryContent = '';
-    state.questions.forEach((data, index) => {
-      const questionState = data.checked;
-      const question = data.title;
-      categoryContent += `
-        <label class="checkbox-label">
-          <input type="checkbox" id="question-${ index }" name="question-${ index }" ${ (questionState ? "checked" : "") } onchange="testing.checkboxStateChange('${ state.name }', '${ index }', event)" />
-          <span class="checkbox-custom"></span>
-          <span class="checkbox-title">${ question }</span>
-        </label>
-      `;
-    });
-
-    content += `
-      ${ categoryTitle }
-      ${ categoryContent }
-    `;
-
-    const template = `
-      <h2 class="section-title">${ state.name }</h2>
-      ${ content }
-    `;
-
-    let wrapper = testing.html.fragmentFromString(template);
-    testing.displayedChecklist.innerHTML = "";
-    testing.displayedChecklist.appendChild(wrapper);
-  },
-  buildChecklistCopy: (state) => {
-    const categoryTitle = `### ${ state.title }`;
-    let categoryContent = '';
-    for (let question of state.questions) {
-      categoryContent += `
-${ (question.checked === true ? "[x]" : "[ ]") } ${ question.title }
+  buildChecklist: {
+    state: (state) => {
+      testing.logging.show('buildChecklist.state', { state });
+  
+      let content = '';
+      const categoryTitle = `<h3 class="category-title">${ state.title }</h3>`;
+      let categoryContent = '';
+      state.questions.forEach((data, index) => {
+        const questionState = data.checked;
+        const question = data.title;
+        categoryContent += `
+          <label class="checkbox-label">
+            <input type="checkbox" id="question-${ index }" name="question-${ index }" ${ (questionState ? "checked" : "") } onchange="testing.checkboxStateChange('${ state.name }', '${ index }', event)" />
+            <span class="checkbox-custom"></span>
+            <span class="checkbox-title">${ question }</span>
+          </label>
         `;
-    }
-
-    const template = `
-## ${ state.name }
-${ categoryTitle }
-${ categoryContent }
-    `;
-
-    return template;
+      });
+  
+      content += `
+        ${ categoryTitle }
+        ${ categoryContent }
+      `;
+  
+      const template = `
+        <h2 class="section-title">${ state.name }</h2>
+        ${ content }
+      `;
+  
+      let wrapper = testing.html.fragmentFromString(template);
+      testing.displayedChecklist.innerHTML = "";
+      testing.displayedChecklist.appendChild(wrapper);
+    },
+    copy: (state) => {
+      const categoryTitle = `### ${ state.title }`;
+      let categoryContent = '';
+      for (let question of state.questions) {
+        categoryContent += `
+  ${ (question.checked === true ? "[x]" : "[ ]") } ${ question.title }
+          `;
+      }
+  
+      const template = `
+  ## ${ state.name }
+  ${ categoryTitle }
+  ${ categoryContent }
+      `;
+  
+      return template;
+    }      
   },
 
-  triggerChecklistView: async (name) => {
-    const state = await testing.store.get(name);
-    testing.logging.show('triggerChecklistView', { name, state });
-
-    state.name = name;
-    await testing.triggerCopyItem.setAttribute('onclick', `testing.triggerCopy('${ name }')`);
-    testing.buildChecklistState(state);
-
-    testing.newChecklistItem.classList.add('hidden');
-    testing.copyChecklistItem.classList.remove('hidden');
-
-    testing.checklists.classList.add('hidden');
-    testing.displayedChecklist.classList.remove('hidden');
-  },
-  triggerCopy: async (name, forTest = false) => {
-    const state = await testing.store.get(name);
-    testing.logging.show('triggerCopy', { state });
-
-    state.name = name;
-    const copy = testing.buildChecklistCopy(state);
-    testing.copyAreaItem.value = copy;
-    
-    testing.copyAreaItem.select();
-    document.execCommand('copy');
-
-    testing.messageItem.innerHTML = "Copied as Markdown.";
-    testing.messageItem.classList.remove('hidden');
-    
-    if (forTest === false) {
-      setTimeout(function() {
-        testing.messageItem.classList.add('hide-2s');
+  checklist: {
+    view: async (name) => {
+      const state = await testing.store.get(name);
+      testing.logging.show('checklist.view', { name, state });
+  
+      state.name = name;
+      await testing.triggerCopyItem.setAttribute('onclick', `testing.checklist.copy('${ name }')`);
+      testing.buildChecklist.state(state);
+  
+      testing.newChecklistItem.classList.add('hidden');
+      testing.copyChecklistItem.classList.remove('hidden');
+  
+      testing.checklists.classList.add('hidden');
+      testing.displayedChecklist.classList.remove('hidden');
+    },
+    copy: async (name, forTest = false) => {
+      const state = await testing.store.get(name);
+      testing.logging.show('checklist.copy', { state });
+  
+      state.name = name;
+      const copy = testing.buildChecklist.copy(state);
+      testing.copyAreaItem.value = copy;
+      
+      testing.copyAreaItem.select();
+      document.execCommand('copy');
+  
+      testing.messageItem.innerHTML = "Copied as Markdown.";
+      testing.messageItem.classList.remove('hidden');
+      
+      if (forTest === false) {
         setTimeout(function() {
-          testing.messageItem.classList.remove('hide-2s');
-          testing.messageItem.classList.add('hidden');
-        }, 2500);
-      }, 1000);  
-    }
-  },
-  closeChecklist: () => {
-    testing.logging.show('closeChecklist');
-
-    testing.newChecklistItem.classList.remove('hidden');
-    testing.copyChecklistItem.classList.add('hidden');
-
-    testing.checklists.classList.remove('hidden');
-    testing.displayedChecklist.classList.add('hidden');
+          testing.messageItem.classList.add('hide-2s');
+          setTimeout(function() {
+            testing.messageItem.classList.remove('hide-2s');
+            testing.messageItem.classList.add('hidden');
+          }, 2500);
+        }, 1000);  
+      }
+    },
+    close: () => {
+      testing.logging.show('checklist.close');
+  
+      testing.newChecklistItem.classList.remove('hidden');
+      testing.copyChecklistItem.classList.add('hidden');
+  
+      testing.checklists.classList.remove('hidden');
+      testing.displayedChecklist.classList.add('hidden');
+    }  
   },
 
   checkboxStateChange: async (name, index, event) => {
@@ -564,144 +568,148 @@ ${ categoryContent }
 
     const content = `
       <label class="checkbox-label">
-        <input type="checkbox" id="debug-mode" name="debug-mode" ${ (debug ? "checked" : "") } onchange="testing.changeDebugMode()" />
+        <input type="checkbox" id="debug-mode" name="debug-mode" ${ (debug ? "checked" : "") } onchange="testing.settings.changeDebugMode()" />
         <span class="checkbox-custom"></span>
         <span class="checkbox-title">Debug</span>
       </label>
 
       <label class="checkbox-label">
-        <input type="checkbox" id="custom-mode" name="custom-mode" ${ (displayMode === 'customMode' ? "checked" : "") } onchange="testing.changeCustomMode()" />
+        <input type="checkbox" id="custom-mode" name="custom-mode" ${ (displayMode === 'customMode' ? "checked" : "") } onchange="testing.settings.changeCustomMode()" />
         <span class="checkbox-custom"></span>
         <span class="checkbox-title">Dark Mode</span>
       </label>
       <div class="group">
-        <input type="color" id="background-color" name="background-color" value="${ testing.state.colors.backgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
+        <input type="color" id="background-color" name="background-color" value="${ testing.state.colors.backgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.settings.changeIndividualColor()">
         <label for="background-color">Background Color</label>
       </div>
       <div class="group">
-        <input type="color" id="alt-background-color" name="alt-background-color" value="${ testing.state.colors.altBackgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
+        <input type="color" id="alt-background-color" name="alt-background-color" value="${ testing.state.colors.altBackgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.settings.changeIndividualColor()">
         <label for="alt-background-color">Alt. Background Color</label>
       </div>
       <div class="group">
-        <input type="color" id="foreground-color" name="foreground-color" value="${ testing.state.colors.foregroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.changeIndividualColor()">
+        <input type="color" id="foreground-color" name="foreground-color" value="${ testing.state.colors.foregroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.settings.changeIndividualColor()">
         <label for="foreground-color">Foreground Color</label>
       </div>
     `;
     let wrapper = testing.html.fragmentFromString(content);
 
-    testing.settings.innerHTML = "";
-    testing.settings.appendChild(wrapper);
-  },
-  triggerSettings: (forTest = false) => {
-    testing.newChecklistItem.classList.add('hidden');
-    testing.newChecklistWrapper.classList.add('hidden');
-    testing.checklists.classList.add('hidden');
-
-    testing.settings.classList.remove('hidden');
-    testing.settingsItem.classList.remove('hidden');
-
-    testing.buildSettingsState();
-
-    if (forTest === false) {
-      setTimeout(() => {
-        testing.background = document.getElementById('background-color');
-        testing.altBackground = document.getElementById('alt-background-color');
-        testing.foreground = document.getElementById('foreground-color');
-      }, 200);  
-    }
-  },
-  closeSettings: () => {
-    testing.newChecklistItem.classList.remove('hidden');
-    testing.checklists.classList.remove('hidden');
-
-    testing.settings.classList.add('hidden');
-    testing.settingsItem.classList.add('hidden');
+    testing.settingsList.innerHTML = "";
+    testing.settingsList.appendChild(wrapper);
   },
 
-  disableCustomColorModeStates: (state) => {
-    testing.logging.show('disableCustomColorModeStates', { state });
-
-    if (state === true) {
-      testing.background.disabled = state;
-      testing.altBackground.disabled = state;
-      testing.foreground.disabled = state;  
-    } else {
-      testing.logging.show('... removing attribute disabled');
-      testing.background.removeAttribute('disabled');
-      testing.altBackground.removeAttribute('disabled');
-      testing.foreground.removeAttribute('disabled');
-    }
-  },
-
-  changeCustomMode: async () => {
-    const debug = testing.state.debug;
-
-    testing.state.displayMode = testing.state.displayMode === 'customMode' ? '' : 'customMode';
-    let displayMode = testing.state.displayMode;
-
-    if (displayMode === 'customMode') {
-      testing.body.classList.add('dark-mode');
-      testing.state.colors = testing.state.colorCustomStart;
-      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
-      testing.setCustomColors();
-      testing.logging.show('changeCustomMode on ...');
-    } else {
-      testing.body.classList.remove('dark-mode');
-      testing.state.colors = testing.state.colorDefault;
-      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
-      testing.disableCustomColorModeStates(true);
-      testing.removeCustomColors();
-    }
-
-    testing.buildSettingsState();
-    if (displayMode === 'customMode') {
-      setTimeout(() => {
-        testing.disableCustomColorModeStates(false);
-      }, 200);
-    }
-  },
-  changeDebugMode: async () => {
-    let debug = testing.state.debug;
-    const displayMode = testing.state.displayMode;
-    const state = await testing.store.get(testing.store.stateKey);
-
-    debug = !debug;
-    testing.state.debug = debug;
-
-    if ('colors' in state) {
-      await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: state.colors });
-    } else {
-      await testing.store.set(testing.store.stateKey, { debug, displayMode });
-    }
-  },
-  changeIndividualColor: () => {
-    const debug = testing.state.debug;
-    const displayMode = testing.state.displayMode;
-
-    const backgroundColor = testing.background.value;
-    const altBackgroundColor = testing.altBackground.value;
-    const foregroundColor = testing.foreground.value;
-
-    testing.state.colors = {
-      backgroundColor, altBackgroundColor, foregroundColor
-    };
-    testing.logging.show('change individual color ...', { colors: testing.state.colors });
-    testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
-    testing.setCustomColors();
-  },
-
-  removeCustomColors: () => {
-    testing.body.removeAttribute('style');
-  },
-  setCustomColors: () => {
-    const logoColor = testing.state.calculateLogoColor(testing.state.colors.backgroundColor);
-    testing.logging.show('setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor });
-
-    testing.body.setAttribute('style', `
-      --background-color: ${ testing.state.colors.backgroundColor };
-      --alt-background-color: ${ testing.state.colors.altBackgroundColor };
-      --foreground-color: ${ testing.state.colors.foregroundColor };
-      --title-color: ${ logoColor };
-    `.trim());
+  settings: {
+    trigger: (forTest = false) => {
+      testing.newChecklistItem.classList.add('hidden');
+      testing.newChecklistWrapper.classList.add('hidden');
+      testing.checklists.classList.add('hidden');
+  
+      testing.settingsList.classList.remove('hidden');
+      testing.settingsItem.classList.remove('hidden');
+  
+      testing.buildSettingsState();
+  
+      if (forTest === false) {
+        setTimeout(() => {
+          testing.background = document.getElementById('background-color');
+          testing.altBackground = document.getElementById('alt-background-color');
+          testing.foreground = document.getElementById('foreground-color');
+        }, 200);  
+      }
+    },
+    close: () => {
+      testing.newChecklistItem.classList.remove('hidden');
+      testing.checklists.classList.remove('hidden');
+  
+      testing.settingsList.classList.add('hidden');
+      testing.settingsItem.classList.add('hidden');
+    },
+  
+    disableCustomColorModeStates: (state) => {
+      testing.logging.show('settings.disableCustomColorModeStates', { state });
+  
+      if (state === true) {
+        testing.background.disabled = state;
+        testing.altBackground.disabled = state;
+        testing.foreground.disabled = state;  
+      } else {
+        testing.logging.show('... removing attribute disabled');
+        testing.background.removeAttribute('disabled');
+        testing.altBackground.removeAttribute('disabled');
+        testing.foreground.removeAttribute('disabled');
+      }
+    },
+  
+    changeCustomMode: async () => {
+      const debug = testing.state.debug;
+  
+      testing.state.displayMode = testing.state.displayMode === 'customMode' ? '' : 'customMode';
+      let displayMode = testing.state.displayMode;
+  
+      if (displayMode === 'customMode') {
+        testing.body.classList.add('dark-mode');
+        testing.state.colors = testing.state.colorCustomStart;
+        await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
+        testing.settings.setCustomColors();
+        testing.logging.show('settings.changeCustomMode on ...');
+      } else {
+        testing.body.classList.remove('dark-mode');
+        testing.state.colors = testing.state.colorDefault;
+        await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
+        testing.settings.disableCustomColorModeStates(true);
+        testing.settings.removeCustomColors();
+      }
+  
+      testing.buildSettingsState();
+      if (displayMode === 'customMode') {
+        setTimeout(() => {
+          testing.settings.disableCustomColorModeStates(false);
+        }, 200);
+      }
+    },
+    changeDebugMode: async () => {
+      let debug = testing.state.debug;
+      const displayMode = testing.state.displayMode;
+      const state = await testing.store.get(testing.store.stateKey);
+  
+      debug = !debug;
+      testing.state.debug = debug;
+  
+      if ('colors' in state) {
+        await testing.store.set(testing.store.stateKey, { debug, displayMode, colors: state.colors });
+      } else {
+        await testing.store.set(testing.store.stateKey, { debug, displayMode });
+      }
+    },
+    changeIndividualColor: () => {
+      const debug = testing.state.debug;
+      const displayMode = testing.state.displayMode;
+  
+      const backgroundColor = testing.background.value;
+      const altBackgroundColor = testing.altBackground.value;
+      const foregroundColor = testing.foreground.value;
+  
+      testing.state.colors = {
+        backgroundColor, altBackgroundColor, foregroundColor
+      };
+      testing.logging.show('change individual color ...', { colors: testing.state.colors });
+      testing.store.set(testing.store.stateKey, { debug, displayMode, colors: testing.state.colors });
+      testing.settings.setCustomColors();
+    },
+  
+    removeCustomColors: () => {
+      testing.body.removeAttribute('style');
+    },
+    setCustomColors: () => {
+      const logoColor = testing.state.calculateLogoColor(testing.state.colors.backgroundColor);
+      testing.logging.show('settings.setCustomColors', { bg: testing.state.colors.backgroundColor, logoColor });
+  
+      testing.body.setAttribute('style', `
+        --background-color: ${ testing.state.colors.backgroundColor };
+        --alt-background-color: ${ testing.state.colors.altBackgroundColor };
+        --foreground-color: ${ testing.state.colors.foregroundColor };
+        --title-color: ${ logoColor };
+      `.trim());
+    }  
   }
+
 };

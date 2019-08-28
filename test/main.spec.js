@@ -364,7 +364,7 @@ describe('Testing Checklist', () => {
     });
 
     afterEach(() => {
-      testing.settings = null;
+      testing.settingsList = null;
       testing.selectedCategory = null;
 
       forTesting = {};
@@ -405,27 +405,27 @@ describe('Testing Checklist', () => {
       expect(testing.edit.save).toEqual(jasmine.any(Function));
       expect(testing.edit.cancel).toEqual(jasmine.any(Function));
 
-      expect(testing.buildChecklistState).toEqual(jasmine.any(Function));
-      expect(testing.buildChecklistCopy).toEqual(jasmine.any(Function));
+      expect(testing.buildChecklist.state).toEqual(jasmine.any(Function));
+      expect(testing.buildChecklist.copy).toEqual(jasmine.any(Function));
 
-      expect(testing.triggerChecklistView).toEqual(jasmine.any(Function));
-      expect(testing.triggerCopy).toEqual(jasmine.any(Function));
-      expect(testing.closeChecklist).toEqual(jasmine.any(Function));
+      expect(testing.checklist.view).toEqual(jasmine.any(Function));
+      expect(testing.checklist.copy).toEqual(jasmine.any(Function));
+      expect(testing.checklist.close).toEqual(jasmine.any(Function));
 
       expect(testing.checkboxStateChange).toEqual(jasmine.any(Function));
 
       expect(testing.buildSettingsState).toEqual(jasmine.any(Function));
-      expect(testing.triggerSettings).toEqual(jasmine.any(Function));
-      expect(testing.closeSettings).toEqual(jasmine.any(Function));
+      expect(testing.settings.trigger).toEqual(jasmine.any(Function));
+      expect(testing.settings.close).toEqual(jasmine.any(Function));
 
-      expect(testing.disableCustomColorModeStates).toEqual(jasmine.any(Function));
+      expect(testing.settings.disableCustomColorModeStates).toEqual(jasmine.any(Function));
 
-      expect(testing.changeCustomMode).toEqual(jasmine.any(Function));
-      expect(testing.changeDebugMode).toEqual(jasmine.any(Function));
-      expect(testing.changeIndividualColor).toEqual(jasmine.any(Function));
+      expect(testing.settings.changeCustomMode).toEqual(jasmine.any(Function));
+      expect(testing.settings.changeDebugMode).toEqual(jasmine.any(Function));
+      expect(testing.settings.changeIndividualColor).toEqual(jasmine.any(Function));
 
-      expect(testing.removeCustomColors).toEqual(jasmine.any(Function));
-      expect(testing.setCustomColors).toEqual(jasmine.any(Function));
+      expect(testing.settings.removeCustomColors).toEqual(jasmine.any(Function));
+      expect(testing.settings.setCustomColors).toEqual(jasmine.any(Function));
     });
 
     describe('[init function]', () => {
@@ -441,13 +441,13 @@ describe('Testing Checklist', () => {
         };
         mockState.displayMode = '';  
         await state.init(mockState);
-        spyOn(testing, 'setCustomColors').and.stub();
+        spyOn(testing.settings, 'setCustomColors').and.stub();
   
         await testing.init(state, store, html, logging);
 
         const bodyState = testing.body.getAttribute('class');
         expect(bodyState).toBeNull();
-        expect(testing.setCustomColors).not.toHaveBeenCalled();
+        expect(testing.settings.setCustomColors).not.toHaveBeenCalled();
       });
       it('expects "init" to handle displayMode ["customMode"]', async () => {
         mockState.storage['~~key~~'] = {
@@ -461,13 +461,13 @@ describe('Testing Checklist', () => {
         };
         mockState.displayMode = 'customMode';  
         await state.init(mockState);
-        spyOn(testing, 'setCustomColors').and.stub();
+        spyOn(testing.settings, 'setCustomColors').and.stub();
   
         await testing.init(state, store, html, logging);
         
         const bodyState = testing.body.getAttribute('class');
         expect(bodyState).toEqual('dark-mode');
-        expect(testing.setCustomColors).toHaveBeenCalled();
+        expect(testing.settings.setCustomColors).toHaveBeenCalled();
       });
     });
 
@@ -481,7 +481,7 @@ describe('Testing Checklist', () => {
       await testing.getStoredElements(element);
 
       const elementState = element.innerHTML.replace(/\s/gm, '');
-      expect(elementState).toEqual('<divid="checklist-test-name"class="active-checklist"><aid="title-test-name"class="checklist-title"href="#"onclick="testing.triggerChecklistView(\'test-name\')"><divclass="active-title">test-name</div><divclass="active-category">test-title</div></a><inputid="edit-test-name"class="input-textedit-checklist-namehidden"value="test-name"onkeypress="returntesting.handleNamedKeypress(\'test-name\',event)"><spanid="actions-save-test-name"class="checklist-actioneditinghidden"><ahref="#"onclick="testing.edit.save(\'test-name\')"><imgsrc="images/checked.svg"></a><ahref="#"onclick="testing.edit.cancel(\'test-name\')"><imgsrc="images/error.svg"></a></span><spanid="actions-test-name"class="checklist-action"><ahref="#"onclick="testing.edit.trigger(\'test-name\')"><imgsrc="images/edit.svg"></a><ahref="#"onclick="testing.triggerDelete(\'test-name\')"><imgsrc="images/trash.svg"></a></span></div>');
+      expect(elementState).toEqual('<divid="checklist-test-name"class="active-checklist"><aid="title-test-name"class="checklist-title"href="#"onclick="testing.checklist.view(\'test-name\')"><divclass="active-title">test-name</div><divclass="active-category">test-title</div></a><inputid="edit-test-name"class="input-textedit-checklist-namehidden"value="test-name"onkeypress="returntesting.handleNamedKeypress(\'test-name\',event)"><spanid="actions-save-test-name"class="checklist-actioneditinghidden"><ahref="#"onclick="testing.edit.save(\'test-name\')"><imgsrc="images/checked.svg"></a><ahref="#"onclick="testing.edit.cancel(\'test-name\')"><imgsrc="images/error.svg"></a></span><spanid="actions-test-name"class="checklist-action"><ahref="#"onclick="testing.edit.trigger(\'test-name\')"><imgsrc="images/edit.svg"></a><ahref="#"onclick="testing.triggerDelete(\'test-name\')"><imgsrc="images/trash.svg"></a></span></div>');
     });
 
     describe('[handle keypress functionality', () => {
@@ -773,8 +773,8 @@ describe('Testing Checklist', () => {
     });
 
     describe('[checklist functionality]', () => {
-      it('expects "buildChecklistCopy" to generate copied content from state', () => {
-        const template = testing.buildChecklistCopy({
+      it('expects "buildChecklist.copy" to generate copied content from state', () => {
+        const template = testing.buildChecklist.copy({
           name: 'name',
           title: 'test-title',
           questions: [{
@@ -789,7 +789,7 @@ describe('Testing Checklist', () => {
         expect(template).toEqual('##name###test-title[x]question1[]question2');
       });
 
-      it('expects "triggerChecklistView" to set up hidden classes and build state', async () => {
+      it('expects "checklist.view" to set up hidden classes and build state', async () => {
         mockLocalStorage.storage.name = JSON.stringify({
           title: "test",
           questions: [{
@@ -801,10 +801,10 @@ describe('Testing Checklist', () => {
           }]
         });
 
-        await testing.triggerChecklistView('name');
+        await testing.checklist.view('name');
 
         const onclickState = testing.triggerCopyItem.getAttribute('onclick');
-        expect(onclickState).toEqual('testing.triggerCopy(\'name\')');
+        expect(onclickState).toEqual('testing.checklist.copy(\'name\')');
         const displayedChecklist = testing.displayedChecklist.innerHTML.replace(/\s/gm, '');
         expect(displayedChecklist).toEqual('<h2class="section-title">name</h2><h3class="category-title">test</h3><labelclass="checkbox-label"><inputtype="checkbox"id="question-0"name="question-0"onchange="testing.checkboxStateChange(\'name\',\'0\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Question1</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="question-1"name="question-1"checked=""onchange="testing.checkboxStateChange(\'name\',\'1\',event)"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Question2</span></label>');
         const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
@@ -816,7 +816,7 @@ describe('Testing Checklist', () => {
         expect(checklistsState).toEqual('hidden');
         expect(displayedChecklistState).toBeNull();
       });
-      it('expects "triggerCopy" to build a markdown copy', async () => {
+      it('expects "checklist.copy" to build a markdown copy', async () => {
         mockLocalStorage.storage.name = JSON.stringify({
           title: 'test',
           questions: [{
@@ -828,13 +828,13 @@ describe('Testing Checklist', () => {
           }]
         });
 
-        await testing.triggerCopy('name', true);
+        await testing.checklist.copy('name', true);
 
         const copycontent = testing.copyAreaItem.value.replace(/\s/gm, '');
         expect(copycontent).toEqual('##name###test[x]Question1[]Question2');
       });
-      it('expects "closeChecklist" to clean up hidden classes', () => {
-        testing.closeChecklist();
+      it('expects "checklist.close" to clean up hidden classes', () => {
+        testing.checklist.close();
 
         const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
         const copyChecklistItemState = testing.copyChecklistItem.getAttribute('class');
@@ -872,8 +872,8 @@ describe('Testing Checklist', () => {
 
         testing.buildSettingsState();
 
-        const innerHTML = testing.settings.innerHTML.replace(/\s/gm, '');
-        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+        const innerHTML = testing.settingsList.innerHTML.replace(/\s/gm, '');
+        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
       });
       it('expects "buildSettingsState" to generate settings content [debug=TRUE, displayMode=""]', () => {
         testing.state.debug = true;
@@ -881,19 +881,19 @@ describe('Testing Checklist', () => {
 
         testing.buildSettingsState();
 
-        const innerHTML = testing.settings.innerHTML.replace(/\s/gm, '');
-        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"checked=""onchange="testing.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+        const innerHTML = testing.settingsList.innerHTML.replace(/\s/gm, '');
+        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"checked=""onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
       });
 
-      it('expects "triggerSettings" to set up hidden classes and build state', () => {
-        testing.triggerSettings(true);
+      it('expects "settings.trigger" to set up hidden classes and build state', () => {
+        testing.settings.trigger(true);
 
-        const innerHTML = testing.settings.innerHTML.replace(/\s/gm, '');
-        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
+        const innerHTML = testing.settingsList.innerHTML.replace(/\s/gm, '');
+        expect(innerHTML).toEqual(`<labelclass="checkbox-label"><inputtype="checkbox"id="debug-mode"name="debug-mode"onchange="testing.settings.changeDebugMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">Debug</span></label><labelclass="checkbox-label"><inputtype="checkbox"id="custom-mode"name="custom-mode"onchange="testing.settings.changeCustomMode()"><spanclass="checkbox-custom"></span><spanclass="checkbox-title">DarkMode</span></label><divclass="group"><inputtype="color"id="background-color"name="background-color"value="#ffffff"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="background-color">BackgroundColor</label></div><divclass="group"><inputtype="color"id="alt-background-color"name="alt-background-color"value="#fafad2"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="alt-background-color">Alt.BackgroundColor</label></div><divclass="group"><inputtype="color"id="foreground-color"name="foreground-color"value="#000000"disabled="true"onchange="testing.settings.changeIndividualColor()"><labelfor="foreground-color">ForegroundColor</label></div>`);
         const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
         const newChecklistWrapperState = testing.newChecklistWrapper.getAttribute('class');
         const checklistsState = testing.checklists.getAttribute('class');
-        const settingsState = testing.settings.getAttribute('class');
+        const settingsState = testing.settingsList.getAttribute('class');
         const settingsItemState = testing.settingsItem.getAttribute('class');
         expect(newChecklistItemState).toEqual('hidden');
         expect(newChecklistWrapperState).toEqual('hidden');
@@ -901,12 +901,12 @@ describe('Testing Checklist', () => {
         expect(settingsState).toBeNull();;
         expect(settingsItemState).toBeNull();
       });
-      it('expects "closeSettings" to clean up hidden classes', () => {
-        testing.closeSettings();
+      it('expects "settings.close" to clean up hidden classes', () => {
+        testing.settings.close();
 
         const newChecklistItemState = testing.newChecklistItem.getAttribute('class');
         const checklistsState = testing.checklists.getAttribute('class');
-        const settingsState = testing.settings.getAttribute('class');
+        const settingsState = testing.settingsList.getAttribute('class');
         const settingsItemState = testing.settingsItem.getAttribute('class');
         expect(newChecklistItemState).toBeNull();
         expect(checklistsState).toBeNull();
@@ -915,12 +915,12 @@ describe('Testing Checklist', () => {
       });
     });
 
-    it('expects "disableCustomColorModeStates" to change disabled state [TRUE]', () => {
+    it('expects "settings.disableCustomColorModeStates" to change disabled state [TRUE]', () => {
       testing.background = helpers.createInputElement('color');
       testing.altBackground = helpers.createInputElement('color');
       testing.foreground = helpers.createInputElement('color');
 
-      testing.disableCustomColorModeStates(true);
+      testing.settings.disableCustomColorModeStates(true);
 
       const backgroundState = testing.background.getAttribute('disabled');
       const altBackgroundState = testing.altBackground.getAttribute('disabled');
@@ -929,12 +929,12 @@ describe('Testing Checklist', () => {
       expect(altBackgroundState).toEqual('');
       expect(foregroundState).toEqual('');
     });
-    it('expects "disableCustomColorModeStates" to change disabled state [FALSE]', () => {
+    it('expects "settings.disableCustomColorModeStates" to change disabled state [FALSE]', () => {
       testing.background = helpers.createInputElement('color', { disabled: true });
       testing.altBackground = helpers.createInputElement('color', { disabled: true });
       testing.foreground = helpers.createInputElement('color', { disabled: true });
 
-      testing.disableCustomColorModeStates(false);
+      testing.settings.disableCustomColorModeStates(false);
 
       const backgroundState = testing.background.getAttribute('disabled');
       const altBackgroundState = testing.altBackground.getAttribute('disabled');
@@ -945,13 +945,13 @@ describe('Testing Checklist', () => {
     });
 
     describe('[configure modes]', () => {
-      it('expects "changeCustomMode" to toggle custom mode [ON]', async () => {
+      it('expects "settings.changeCustomMode" to toggle custom mode [ON]', async () => {
         testing.state.displayMode = '';
         testing.background = helpers.createInputElement('color', { disabled: true });
         testing.altBackground = helpers.createInputElement('color', { disabled: true });
         testing.foreground = helpers.createInputElement('color', { disabled: true });
 
-        await testing.changeCustomMode();
+        await testing.settings.changeCustomMode();
         jasmine.clock().tick(210);
 
         expect(testing.state.displayMode).toEqual('customMode');
@@ -973,13 +973,13 @@ describe('Testing Checklist', () => {
           })
         }));
       });
-      it('expects "changeCustomMode" to toggle custom mode [OFF]', async () => {
+      it('expects "settings.changeCustomMode" to toggle custom mode [OFF]', async () => {
         testing.state.displayMode = 'customMode';
         testing.background = helpers.createInputElement('color', { disabled: true });
         testing.altBackground = helpers.createInputElement('color', { disabled: true });
         testing.foreground = helpers.createInputElement('color', { disabled: true });
 
-        await testing.changeCustomMode();
+        await testing.settings.changeCustomMode();
         jasmine.clock().tick(210);
 
         expect(testing.state.displayMode).toEqual('');
@@ -1002,7 +1002,7 @@ describe('Testing Checklist', () => {
         }));
       });
 
-      it('expects "changeDebugMode" to toggle stored debug state [with colors]', async () => {
+      it('expects "settings.changeDebugMode" to toggle stored debug state [with colors]', async () => {
         const backgroundColor = '#000000';
         const altBackgroundColor = '#222222';
         const foregroundColor = '#ffffff';
@@ -1012,7 +1012,7 @@ describe('Testing Checklist', () => {
           backgroundColor, altBackgroundColor, foregroundColor
         }});
 
-        await testing.changeDebugMode();
+        await testing.settings.changeDebugMode();
 
         expect(testing.state.debug).toEqual(true);
         expect(testing.state.displayMode).toEqual('');
@@ -1027,12 +1027,12 @@ describe('Testing Checklist', () => {
           })
         }));
       });
-      it('expects "changeDebugMode" to toggle stored debug state [without colors]', async () => {
+      it('expects "settings.changeDebugMode" to toggle stored debug state [without colors]', async () => {
         testing.state.debug = false;
         testing.state.displayMode = '';
         mockLocalStorage.storage['~~state~~'] = JSON.stringify({ debug: false, displayMode: '' });
 
-        await testing.changeDebugMode();
+        await testing.settings.changeDebugMode();
 
         expect(testing.state.debug).toEqual(true);
         expect(testing.state.displayMode).toEqual('');
@@ -1043,12 +1043,12 @@ describe('Testing Checklist', () => {
         }));
       });
 
-      it('expects "changeIndividualColor" to get colors and store', async () => {
+      it('expects "settings.changeIndividualColor" to get colors and store', async () => {
         testing.background = { value: '#000000' };
         testing.altBackground = { value: '#222222' };
         testing.foreground = { value: '#ffffff' };
 
-        await testing.changeIndividualColor();
+        await testing.settings.changeIndividualColor();
 
         expect(testing.state.colors).toEqual({
           backgroundColor: '#000000',
@@ -1069,15 +1069,15 @@ describe('Testing Checklist', () => {
     });
 
     describe('[custom colors]', () => {
-      it('expects "removeCustomColors" to remove attached styles on body', () => {
-        testing.setCustomColors();
-        testing.removeCustomColors();
+      it('expects "settings.removeCustomColors" to remove attached styles on body', () => {
+        testing.settings.setCustomColors();
+        testing.settings.removeCustomColors();
         const style = testing.body.getAttribute('style');
         expect(style).toBeNull();
       });
   
-      it('expects "setCustomColors" to attach style attributes to body', () => {
-        testing.setCustomColors();
+      it('expects "settings.setCustomColors" to attach style attributes to body', () => {
+        testing.settings.setCustomColors();
         const style = testing.body.getAttribute('style').replace(/\s/gm, '');
         expect(style).toEqual('--background-color:#ffffff;--alt-background-color:#fafad2;--foreground-color:#000000;--title-color:#800000;');
       });  

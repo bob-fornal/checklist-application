@@ -18,7 +18,7 @@
     <div class="inner-wrapper">
       <div class="navigation white">
         <div id="nav-new-checklist-item">
-          <a href="#" onclick="testing.triggerSettings()" title="Change Settings">
+          <a href="#" onclick="testing.settings.trigger()" title="Change Settings">
             <img class="change-settings-item" src="images/setting.svg" />
           </a>
           <a href="#" onclick="testing.newChecklist.trigger()" title="Create New Checklist">
@@ -29,12 +29,12 @@
           <a href="#" id="trigger-copy" title="Copy State">
             <img class="copy-checklist-item" src="images/document.svg" />
           </a>
-          <a href="#" onclick="testing.closeChecklist()" title="Close Checklist">
+          <a href="#" onclick="testing.checklist.close()" title="Close Checklist">
             <img class="close-checklist-item" src="images/error.svg" />
           </a>
         </div>
         <div id="nav-settings-item" class="hidden">
-          <a href="#" onclick="testing.closeSettings()" title="Close Settings">
+          <a href="#" onclick="testing.settings.close()" title="Close Settings">
             <img class="close-checklist-item" src="images/error.svg" />
           </a>
         </div>
