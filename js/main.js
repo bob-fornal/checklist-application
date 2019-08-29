@@ -207,8 +207,9 @@ const testing = {
     testing.logging = logging;
 
     testing.elements.init();
+    await testing.templates.init();
 
-    testing.getStoredElements(testing.checklists);
+    testing.getStoredElements(testing.elements.checklists);
 
     testing.structure = await testing.store.getStructure();
 
@@ -233,35 +234,32 @@ const testing = {
     }
   },
 
+  templates: {
+    categoryContent: null,
+    categoryElement: null,
+    checklist: null,
+    settingsState: null,
+
+    init: async () => {
+      testing.templates.checklist = await testing.templates.get('checklist.html');
+      testing.templates.categoryContent = await testing.templates.get('category-content.html');
+      testing.templates.categoryElement = await testing.templates.get('category-element.html');
+      testing.templates.settingsState = await testing.templates.get('settings-state.html');  
+    },
+    get: async (file) => {
+      const templateLocation = `/templates/${ file }`;
+      const response = await fetch(templateLocation);
+      const html = await response.text();
+      return html;
+    }  
+  },
+
   buildChecklistElement: (list)  => {
-    const template = `
-      <div id="checklist-${ list.name }" class="active-checklist">
-        <a id="title-${ list.name }" class="checklist-title"href="#" onclick="testing.checklist.view('${ list.name }')">
-          <div class="active-title">${ list.name }</div>
-          <div class="active-category">${ list.title }</div>
-        </a>
-        <input id="edit-${ list.name }" class="input-text edit-checklist-name  hidden" value="${ list.name }" onkeypress="return testing.handleNamedKeypress('${ list.name }', event)" />
+    let template = testing.templates.checklist;
+    template = template.replace(/~~list.name~~/g, list.name);
+    template = template.replace(/~~list.title~~/g, list.title);
 
-        <span id="actions-save-${ list.name }" class="checklist-action editing hidden">
-          <a href="#" onclick="testing.edit.save('${ list.name }')">
-            <img src="images/checked.svg" />
-          </a>
-          <a href="#" onclick="testing.edit.cancel('${ list.name }')">
-            <img src="images/error.svg" />
-          </a>
-        </span>
-        <span id="actions-${ list.name }" class="checklist-action">
-          <a href="#" onclick="testing.edit.trigger('${ list.name }')">
-            <img src="images/edit.svg" />
-          </a>
-          <a href="#" onclick="testing.triggerDelete('${ list.name }')">
-            <img src="images/trash.svg" />
-          </a>
-        </span>
-      </div>
-    `;
     let wrapper = testing.html.fragmentFromString(template);
-
     return wrapper;
   },
 
@@ -332,7 +330,7 @@ const testing = {
   
       testing.newChecklist.selectedCategory = null;
       testing.newChecklist.close();
-      testing.getStoredElements(testing.checklists);
+      testing.getStoredElements(testing.elements.checklists);
     },  
 
     createChecklistCategories: () => {
@@ -342,13 +340,11 @@ const testing = {
         if (first === true) {
           testing.newChecklist.selectedCategory = category;
         }
-        categoryElements += `
-          <label class="checkbox-label">
-            <input class="all-categories" type="checkbox" data-title="${ category.title }" id="select-${ index }" name="select-${ category.title }" ${ (first ? "checked" : "") } onchange="testing.newChecklist.checkboxCategoryChange('${ category.title }', event)" />
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-title">${ category.title }</span>
-          </label>
-        `;
+        let cat = testing.templates.categoryElement;
+        cat = cat.replace(/~~category.title~~/g, category.title);
+        cat = cat.replace(/~~index~~/g, index);
+        cat = cat.replace(/~~checked~~/g, (first ? 'checked' : ''));
+        cat = categoryElements += cat;
         first = false;
       });
   
@@ -379,7 +375,7 @@ const testing = {
     await testing.store.set(testing.store.storedKey, stored);
     await testing.store.remove(name);
 
-    testing.getStoredElements(testing.checklists);
+    testing.getStoredElements(testing.elements.checklists);
   },
 
   edit: {
@@ -446,7 +442,7 @@ const testing = {
       await testing.store.remove(name);
       await testing.store.set(newName, state);
   
-      testing.getStoredElements(testing.checklists);
+      testing.getStoredElements(testing.elements.checklists);
     },
     cancel: (name) => {
       testing.logging.show('cancel', { name });
@@ -466,15 +462,13 @@ const testing = {
       const categoryTitle = `<h3 class="category-title">${ state.title }</h3>`;
       let categoryContent = '';
       state.questions.forEach((data, index) => {
-        const questionState = data.checked;
         const question = data.title;
-        categoryContent += `
-          <label class="checkbox-label">
-            <input type="checkbox" id="question-${ index }" name="question-${ index }" ${ (questionState ? "checked" : "") } onchange="testing.checkboxStateChange('${ state.name }', '${ index }', event)" />
-            <span class="checkbox-custom"></span>
-            <span class="checkbox-title">${ question }</span>
-          </label>
-        `;
+        let cat = testing.templates.categoryContent;
+        cat = cat.replace(/~~state.name~~/g, state.name);
+        cat = cat.replace(/~~question~~/g, question);
+        cat = cat.replace(/~~index~~/g, index);
+        cat = cat.replace(/~~checked~~/g, (data.checked ? 'checked' : ''));
+        categoryContent += cat;
       });
   
       content += `
@@ -574,32 +568,17 @@ const testing = {
   buildSettingsState: () => {
     const debug = testing.state.debug;
     const displayMode = testing.state.displayMode;
+    const mode = (displayMode === 'customMode' ? "checked" : "");
+    const disabled = (displayMode === 'customMode' ? '' : 'disabled="true"');
 
-    const content = `
-      <label class="checkbox-label">
-        <input type="checkbox" id="debug-mode" name="debug-mode" ${ (debug ? "checked" : "") } onchange="testing.settings.changeDebugMode()" />
-        <span class="checkbox-custom"></span>
-        <span class="checkbox-title">Debug</span>
-      </label>
+    let content = testing.templates.settingsState;
+    content = content.replace(/~~debug~~/g, (debug ? 'checked' : ''));
+    content = content.replace(/~~displayMode=customMode~~/g, mode);
+    content = content.replace(/~~displayMode=customMode-disabled~~/g, disabled);
+    content = content.replace(/~~testing.state.colors.backgroundColor~~/g, testing.state.colors.backgroundColor);
+    content = content.replace(/~~testing.state.colors.altBackgroundColor~~/g, testing.state.colors.altBackgroundColor);
+    content = content.replace(/~~testing.state.colors.foregroundColor~~/g, testing.state.colors.foregroundColor);
 
-      <label class="checkbox-label">
-        <input type="checkbox" id="custom-mode" name="custom-mode" ${ (displayMode === 'customMode' ? "checked" : "") } onchange="testing.settings.changeCustomMode()" />
-        <span class="checkbox-custom"></span>
-        <span class="checkbox-title">Dark Mode</span>
-      </label>
-      <div class="group">
-        <input type="color" id="background-color" name="background-color" value="${ testing.state.colors.backgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.settings.changeIndividualColor()">
-        <label for="background-color">Background Color</label>
-      </div>
-      <div class="group">
-        <input type="color" id="alt-background-color" name="alt-background-color" value="${ testing.state.colors.altBackgroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.settings.changeIndividualColor()">
-        <label for="alt-background-color">Alt. Background Color</label>
-      </div>
-      <div class="group">
-        <input type="color" id="foreground-color" name="foreground-color" value="${ testing.state.colors.foregroundColor }" ${ displayMode === 'customMode' ? '' : 'disabled="true"' } onchange="testing.settings.changeIndividualColor()">
-        <label for="foreground-color">Foreground Color</label>
-      </div>
-    `;
     let wrapper = testing.html.fragmentFromString(content);
     return wrapper;
   },

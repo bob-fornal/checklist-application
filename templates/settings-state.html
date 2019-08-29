@@ -1,0 +1,51 @@
+<label class="checkbox-label">
+  <input
+    type="checkbox"
+    id="debug-mode"
+    name="debug-mode"
+    ~~debug~~
+    onchange="testing.settings.changeDebugMode()" />
+  <span class="checkbox-custom"></span>
+  <span class="checkbox-title">Debug</span>
+</label>
+
+<label class="checkbox-label">
+  <input
+    type="checkbox"
+    id="custom-mode"
+    name="custom-mode"
+    ~~displayMode=customMode~~
+    onchange="testing.settings.changeCustomMode()" />
+  <span class="checkbox-custom"></span>
+  <span class="checkbox-title">Dark Mode</span>
+</label>
+<div class="group">
+  <input
+    type="color"
+    id="background-color"
+    name="background-color"
+    value="~~testing.state.colors.backgroundColor~~"
+    ~~displayMode=customMode-disabled~~
+    onchange="testing.settings.changeIndividualColor()">
+  <label for="background-color">Background Color</label>
+</div>
+<div class="group">
+  <input
+    type="color"
+    id="alt-background-color"
+    name="alt-background-color"
+    value="~~testing.state.colors.altBackgroundColor~~"
+    ~~displayMode=customMode-disabled~~
+    onchange="testing.settings.changeIndividualColor()">
+  <label for="alt-background-color">Alt. Background Color</label>
+</div>
+<div class="group">
+  <input
+    type="color"
+    id="foreground-color"
+    name="foreground-color"
+    value="~~testing.state.colors.foregroundColor~~"
+    ~~displayMode=customMode-disabled~~
+    onchange="testing.settings.changeIndividualColor()">
+  <label for="foreground-color">Foreground Color</label>
+</div>

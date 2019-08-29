@@ -53,10 +53,129 @@ const helpers = {
   }
 };
 
+const mockTemplates = {
+  categoryContent: `
+<label class="checkbox-label">
+  <input
+    type="checkbox"
+    id="question-~~index~~"
+    name="question-~~index~~"
+    ~~checked~~
+    onchange="testing.checkboxStateChange('~~state.name~~', '~~index~~', event)" />
+  <span class="checkbox-custom"></span>
+  <span class="checkbox-title">~~question~~</span>
+</label>  
+  `,
+  categoryElement: `
+<label class="checkbox-label">
+  <input
+    class="all-categories"
+    type="checkbox"
+    data-title="~~category.title~~"
+    id="select-~~index~~"
+    name="select-~~category.title~~"
+    ~~checked~~
+    onchange="testing.newChecklist.checkboxCategoryChange('~~category.title~~', event)" />
+  <span class="checkbox-custom"></span>
+  <span class="checkbox-title">~~category.title~~</span>
+</label>
+  `,
+  checklist: `
+<div id="checklist-~~list.name~~" class="active-checklist">
+  <a id="title-~~list.name~~"
+      class="checklist-title" href="#"
+    onclick="testing.checklist.view('~~list.name~~')">
+    <div class="active-title">~~list.name~~</div>
+    <div class="active-category">~~list.title~~</div>
+  </a>
+  <input
+    id="edit-~~list.name~~"
+    class="input-text edit-checklist-name  hidden"
+    value="~~list.name~~"
+    onkeypress="return testing.handleNamedKeypress('~~list.name~~', event)" />
+
+  <span id="actions-save-~~list.name~~" class="checklist-action editing hidden">
+    <a href="#" onclick="testing.edit.save('~~list.name~~')">
+      <img src="images/checked.svg" />
+    </a>
+    <a href="#" onclick="testing.edit.cancel('~~list.name~~')">
+      <img src="images/error.svg" />
+    </a>
+  </span>
+  <span id="actions-~~list.name~~" class="checklist-action">
+    <a href="#" onclick="testing.edit.trigger('~~list.name~~')">
+      <img src="images/edit.svg" />
+    </a>
+    <a href="#" onclick="testing.triggerDelete('~~list.name~~')">
+      <img src="images/trash.svg" />
+    </a>
+  </span>
+</div>
+  `,
+  settingsState: `
+<label class="checkbox-label">
+  <input
+    type="checkbox"
+    id="debug-mode"
+    name="debug-mode"
+    ~~debug~~
+    onchange="testing.settings.changeDebugMode()" />
+  <span class="checkbox-custom"></span>
+  <span class="checkbox-title">Debug</span>
+</label>
+
+<label class="checkbox-label">
+  <input
+    type="checkbox"
+    id="custom-mode"
+    name="custom-mode"
+    ~~displayMode=customMode~~
+    onchange="testing.settings.changeCustomMode()" />
+  <span class="checkbox-custom"></span>
+  <span class="checkbox-title">Dark Mode</span>
+</label>
+<div class="group">
+  <input
+    type="color"
+    id="background-color"
+    name="background-color"
+    value="~~testing.state.colors.backgroundColor~~"
+    ~~displayMode=customMode-disabled~~
+    onchange="testing.settings.changeIndividualColor()">
+  <label for="background-color">Background Color</label>
+</div>
+<div class="group">
+  <input
+    type="color"
+    id="alt-background-color"
+    name="alt-background-color"
+    value="~~testing.state.colors.altBackgroundColor~~"
+    ~~displayMode=customMode-disabled~~
+    onchange="testing.settings.changeIndividualColor()">
+  <label for="alt-background-color">Alt. Background Color</label>
+</div>
+<div class="group">
+  <input
+    type="color"
+    id="foreground-color"
+    name="foreground-color"
+    value="~~testing.state.colors.foregroundColor~~"
+    ~~displayMode=customMode-disabled~~
+    onchange="testing.settings.changeIndividualColor()">
+  <label for="foreground-color">Foreground Color</label>
+</div>
+  `
+};
+
 describe('Testing Checklist', () => {
 
   beforeEach(function() {
     fetchMock.get('./testing.json', { 'test': 'object' });
+
+    fetchMock.get('/templates/category-content.html', mockTemplates.categoryContent);
+    fetchMock.get('/templates/category-element.html', mockTemplates.categoryElement);
+    fetchMock.get('/templates/checklist.html', mockTemplates.checklist);
+    fetchMock.get('/templates/settings-state.html', mockTemplates.settingsState);
 
     timerCallback = jasmine.createSpy("timerCallback");
     jasmine.clock().install();
@@ -365,7 +484,7 @@ describe('Testing Checklist', () => {
 
     afterEach(() => {
       testing.settingsList = null;
-      testing.selectedCategory = null;
+      testing.newChecklist.selectedCategory = null;
 
       forTesting = {};
 
@@ -697,7 +816,7 @@ describe('Testing Checklist', () => {
           name: 'test-name'
         }]);
         expect(data).toEqual({ data: 'mock-data' });
-        expect(testing.selectedCategory).toBeNull();
+        expect(testing.newChecklist.selectedCategory).toBeNull();
         expect(testing.newChecklist.close).toHaveBeenCalled();
         expect(testing.getStoredElements).toHaveBeenCalled();
       });

@@ -1,0 +1,30 @@
+<div id="checklist-~~list.name~~" class="active-checklist">
+  <a id="title-~~list.name~~"
+      class="checklist-title" href="#"
+    onclick="testing.checklist.view('~~list.name~~')">
+    <div class="active-title">~~list.name~~</div>
+    <div class="active-category">~~list.title~~</div>
+  </a>
+  <input
+    id="edit-~~list.name~~"
+    class="input-text edit-checklist-name  hidden"
+    value="~~list.name~~"
+    onkeypress="return testing.handleNamedKeypress('~~list.name~~', event)" />
+
+  <span id="actions-save-~~list.name~~" class="checklist-action editing hidden">
+    <a href="#" onclick="testing.edit.save('~~list.name~~')">
+      <img src="images/checked.svg" />
+    </a>
+    <a href="#" onclick="testing.edit.cancel('~~list.name~~')">
+      <img src="images/error.svg" />
+    </a>
+  </span>
+  <span id="actions-~~list.name~~" class="checklist-action">
+    <a href="#" onclick="testing.edit.trigger('~~list.name~~')">
+      <img src="images/edit.svg" />
+    </a>
+    <a href="#" onclick="testing.triggerDelete('~~list.name~~')">
+      <img src="images/trash.svg" />
+    </a>
+  </span>
+</div>
