@@ -1,7 +1,7 @@
 {
   "categories": [
     {
-      "title": "On Commit",
+      "title": "Before Review",
       "questions": [{
         "title": "Black Box: Tests do not care how it is done, they test what is done.",
         "checked": false
@@ -31,6 +31,15 @@
         "checked": false
       }, {
         "title": "Don’t Test 3rd-Party Code: Your tests don’t test third-party code; that code should come with its own tests.",
+        "checked": false
+      }, {
+        "title": "Alphabetizing CSS.",
+        "checked": false
+      }, {
+        "title": "Quotes: Single Quotes (JavaScript); Double Quotes (HTML).",
+        "checked": false
+      }, {
+        "title": "Kebab casing.",
         "checked": false
       }]
     }, {
