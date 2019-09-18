@@ -9,7 +9,7 @@ module.exports = function(config) {
     files: [
       './../node_modules/fetch-mock/dist/es5/client-bundle.js',
 
-      './../js/**/*.js',
+      './../public/js/**/*.js',
       './**/*.spec.js'
     ],
     exclude: [],
